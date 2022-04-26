@@ -23,6 +23,7 @@
 #include "../CMusicHandler.h"
 #include "../CPlayerInterface.h"
 #include "../mainmenu/CMainMenu.h"
+#include "../lobby/CSelectionBase.h"
 #include "../lobby/CBonusSelection.h"
 #include "../lobby/CSavingScreen.h"
 #include "../lobby/CScenarioInfoScreen.h"
@@ -51,6 +52,7 @@
 #include "../../lib/UnlockGuard.h"
 #include "../../lib/VCMI_Lib.h"
 #include "../../lib/StartInfo.h"
+#include "../../lib/mapping/CMapInfo.h"
 
 #ifdef _MSC_VER
 #pragma warning (disable : 4355)
@@ -1964,7 +1966,41 @@ void CAdventureOptions::showScenarioInfo()
 {
 	if(LOCPLINT->cb->getStartInfo()->campState)
 	{
-		GH.pushIntT<CBonusSelection>();
+		class CAdvBonusSelector : public CBonusSelection, ISelectionScreenInfo
+		{
+			const StartInfo * localSi;
+			CMapInfo * localMi;
+
+		public:
+			CAdvBonusSelector()
+			{
+				OBJ_CONSTRUCTION_CAPTURING_ALL_NO_DISPOSE;
+				localSi = new StartInfo(*LOCPLINT->cb->getStartInfo());
+				localMi = new CMapInfo();
+				localMi->mapHeader = std::unique_ptr<CMapHeader>(new CMapHeader(*LOCPLINT->cb->getMapHeader()));
+
+				screenType = ESelectionScreen::scenarioInfo;
+
+				updateAfterStateChange();
+			}
+			
+			~CAdvBonusSelector()
+			{
+				vstd::clear_pointer(localSi);
+				vstd::clear_pointer(localMi);
+			}
+
+			const CMapInfo * getMapInfo() override
+			{
+				return localMi;
+			}
+			const StartInfo * getStartInfo() override
+			{
+				return localSi;
+			}
+		};
+
+		GH.pushIntT<CAdvBonusSelector>();
 	}
 	else
 	{
