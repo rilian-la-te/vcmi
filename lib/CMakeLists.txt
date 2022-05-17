@@ -398,17 +398,14 @@ assign_source_group(${lib_SRCS} ${lib_HEADERS})
 add_library(vcmi SHARED ${lib_SRCS} ${lib_HEADERS})
 set_target_properties(vcmi PROPERTIES COMPILE_DEFINITIONS "VCMI_DLL=1")
 target_link_libraries(vcmi PUBLIC
-		${MINIZIP_LIBRARIES} ${SDL2_LIBRARY} ${ZLIB_LIBRARIES}
-		${SYSTEM_LIBS} ${Boost_LIBRARIES}
+		minizip::minizip SDL2::Core ZLIB::ZLIB
+		${SYSTEM_LIBS} Boost::boost
 )
 
 target_include_directories(vcmi
 	PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 	PUBLIC ${CMAKE_HOME_DIRECTORY}
 	PUBLIC ${CMAKE_HOME_DIRECTORY}/include
-	PUBLIC ${Boost_INCLUDE_DIRS}
-	PUBLIC ${ZLIB_INCLUDE_DIR}
-	PRIVATE ${SDL2_INCLUDE_DIR}
 )
 
 if(WIN32)
