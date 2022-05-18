@@ -399,7 +399,7 @@ add_library(vcmi SHARED ${lib_SRCS} ${lib_HEADERS})
 set_target_properties(vcmi PROPERTIES COMPILE_DEFINITIONS "VCMI_DLL=1")
 target_link_libraries(vcmi PUBLIC
 		minizip::minizip SDL2::Core ZLIB::ZLIB
-		${SYSTEM_LIBS} Boost::boost
+		${SYSTEM_LIBS} Boost::boost Boost::thread Boost::filesystem Boost::program_options Boost::locale Boost::date_time
 )
 
 target_include_directories(vcmi

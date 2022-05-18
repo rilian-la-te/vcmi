@@ -34,6 +34,7 @@ else()
     set(FL_BUILD_SHARED OFF CACHE BOOL "")
 	set(FL_BUILD_TESTS OFF CACHE BOOL "")
 	add_subdirectory(FuzzyLite/fuzzylite EXCLUDE_FROM_ALL)
+	add_library(fuzzylite::fuzzylite ALIAS fl-static)
 endif()
 
 #######################################

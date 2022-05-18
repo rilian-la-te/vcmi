@@ -15,7 +15,7 @@ set(lib_HDRS
 )
 
 add_library(vcmiERM SHARED ${lib_SRCS} ${lib_HDRS})
-target_link_libraries(vcmiERM boost::boost vcmi)
+target_link_libraries(vcmiERM Boost::boost vcmi)
 
 vcmi_set_output_dir(vcmiERM "scripting")
 

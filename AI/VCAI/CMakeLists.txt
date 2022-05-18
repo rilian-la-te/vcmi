@@ -109,18 +109,9 @@ endif()
 
 add_library(VCAI SHARED ${VCAI_SRCS} ${VCAI_HEADERS})
 
-if(fuzzylite_FOUND)
-	target_include_directories(VCAI PUBLIC ${FL_INCLUDE_DIRS})
-else()
-	target_include_directories(VCAI PUBLIC ${CMAKE_HOME_DIRECTORY}/AI/FuzzyLite/fuzzylite)
-endif()
 target_include_directories(VCAI PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-if(fuzzylite_FOUND)
-	target_link_libraries(VCAI PRIVATE fuzzylite::fuzzylite vcmi)
-else()
-	target_link_libraries(VCAI PRIVATE fl-static vcmi)
-endif()
+target_link_libraries(VCAI PRIVATE fuzzylite::fuzzylite vcmi)
 
 vcmi_set_output_dir(VCAI "AI")
 
