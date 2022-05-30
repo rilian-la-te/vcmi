@@ -6,7 +6,7 @@ sudo apt-get install -qq nsis
 #clone and build pacman
 git clone https://gitlab.archlinux.org/pacman/pacman.git
 cd pacman
-git checkout 6.0.1
+git checkout v6.0.1
 
 #Taken from archlinux's PKGBUILD
 meson --prefix=/usr \
