@@ -29,5 +29,5 @@ mkdir -p msys2-root/var/lib/pacman
 sudo pacman-key --init
 sudo pacman -Syy --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf
 sudo pacman --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf -Sy $MXE_TARGET-boost $MXE_TARGET-luajit $MXE_TARGET-ffmpeg \
-$MXE_TARGET-tbb $MXE_TARGET-sdl2 $MXE_TARGET-sdl2_image $MXE_TARGET-sdl2_mixer $MXE_TARGET-sdl2_ttf \
-$MXE_TARGET-minizip2 $MXE_TARGET-qt6-base
+$MXE_TARGET-tbb $MXE_TARGET-SDL2 $MXE_TARGET-SDL2_image $MXE_TARGET-SDL2_mixer $MXE_TARGET-SDL2_ttf \
+$MXE_TARGET-qt6-base

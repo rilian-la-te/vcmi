@@ -423,11 +423,18 @@ if(WIN32)
 			${Qtbin_folder}/Qt5Widgets${debug_postfix}.dll
 			${Qtbin_folder}/Qt5Network${debug_postfix}.dll
 			${Qtbin_folder}/icu*.dll)
-		get_target_property(integration_type Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin TYPE)
-		if(NOT(integration_type STREQUAL "INTERFACE_LIBRARY"))
-			get_target_property(integration_loc Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin LOCATION)
+		if(TARGET Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin)
+			get_target_property(integration_type Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin TYPE)
+			if(NOT(integration_type STREQUAL "INTERFACE_LIBRARY"))
+				get_target_property(integration_loc Qt${QT_VERSION_MAJOR}::QWindowsIntegrationPlugin LOCATION)
+				install(
+					FILES ${integration_loc}
+					DESTINATION ${BIN_DIR}/platforms
+				)
+			endif()
+		else()
 			install(
-				FILES ${integration_loc}
+				FILES 	${CMAKE_FIND_ROOT_PATH}/share/qt6/plugins/platforms/qwindows.dll
 				DESTINATION ${BIN_DIR}/platforms
 			)
 		endif()

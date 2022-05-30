@@ -17,6 +17,7 @@ FIND_PATH(luajit_INCLUDE_DIR luajit.h
 	/opt/local # DarwinPorts
 	/opt/csw # Blastwave
 	/opt
+	/
 )
 
 FIND_LIBRARY(luajit_LIBRARY
