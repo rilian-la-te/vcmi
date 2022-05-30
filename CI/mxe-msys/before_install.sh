@@ -7,6 +7,7 @@ sudo apt-get install -qq nsis
 git clone https://gitlab.archlinux.org/pacman/pacman.git
 cd pacman
 git checkout v6.0.1
+sudo pip3 install meson
 
 #Taken from archlinux's PKGBUILD
 meson --prefix=/usr \
