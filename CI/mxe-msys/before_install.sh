@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Install nsis for installer creation
-sudo apt-get install -qq nsis libarchive-dev libgpgme-dev libssl-dev ninja-build
+sudo apt-get install -qq nsis libarchive-dev libgpgme-dev libssl-dev ninja-build libcurl-dev
 
 #clone and build pacman
 git clone https://gitlab.archlinux.org/pacman/pacman.git
@@ -26,7 +26,7 @@ rm -rf pacman
 #now install VCMI cross-deps
 mkdir -p msys2-root/var/lib/pacman
 
-pacman -Syy --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf
-pacman --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf -Sy $MXE_TARGET-boost $MXE_TARGET-luajit $MXE_TARGET-ffmpeg \
+sudo pacman -Syy --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf
+sudo pacman --noconfirm -r msys2-root --config CI/mxe-msys/pacman-mingw.conf -Sy $MXE_TARGET-boost $MXE_TARGET-luajit $MXE_TARGET-ffmpeg \
 $MXE_TARGET-tbb $MXE_TARGET-sdl2 $MXE_TARGET-sdl2_image $MXE_TARGET-sdl2_mixer $MXE_TARGET-sdl2_ttf \
 $MXE_TARGET-minizip2 $MXE_TARGET-qt6-base
