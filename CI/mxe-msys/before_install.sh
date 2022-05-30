@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Install nsis for installer creation
-sudo apt-get install -qq nsis libarchive-dev libgpgme-dev libssl-dev
+sudo apt-get install -qq nsis libarchive-dev libgpgme-dev libssl-dev ninja-build
 
 #clone and build pacman
 git clone https://gitlab.archlinux.org/pacman/pacman.git
