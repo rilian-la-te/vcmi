@@ -68,6 +68,15 @@
             }
         },
         {
+            "name": "linux-mxe-release",
+            "displayName": "MXE build",
+            "inherits": "default-release",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/CI/mxe-msys/msys2_toolchain.cmake",
+            }
+        },
+        {
             "name": "windows-msvc-conan",
             "displayName": "Windows x64 RelWithDebInfo",
             "description": "VCMI RelWithDebInfo build",
@@ -119,6 +128,11 @@
             "inherits": "default-release"
         },
         {
+            "name": "linux-mxe-release",
+            "configurePreset": "linux-mxe-release",
+            "inherits": "default-release"
+        },
+        {
             "name": "macos-xcode-release",
             "configurePreset": "macos-xcode-release",
             "inherits": "default-release"
@@ -161,6 +175,11 @@
         {
             "name": "linux-gcc-release",
             "configurePreset": "linux-gcc-release",
+            "inherits": "default-release"
+        },
+        {
+            "name": "linux-mxe-release",
+            "configurePreset": "linux-mxe-release",
             "inherits": "default-release"
         },
         {

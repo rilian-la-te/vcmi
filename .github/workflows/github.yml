@@ -38,6 +38,15 @@ jobs:
             extension: exe
             cmake_args: -G Ninja
             build: Release
+          - platform: mxe-msys
+            os: ubuntu-latest
+            mxe: mingw-w64-clang-i686
+            test: 0
+            pack: 1
+            cpack_args: -D CPACK_NSIS_EXECUTABLE=`which makensis`
+            extension: exe
+            preset: linux-mxe-release
+            build: RelWithDebInfo
           - platform: msvc
             os: windows-latest
             test: 0
