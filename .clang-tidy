@@ -1,0 +1,68 @@
+---
+Checks:          'clang-diagnostic-*,
+                  clang-analyzer-*,
+                  google-readability-casting,
+                  readability-*,
+                  -readability-braces-around-statements,
+                  -readability-implicit-bool-conversion,
+                  -readability-magic-numbers,
+                  -readability-identifier-length,
+                  -readability-else-after-return,
+                  -readability-convert-member-functions-to-static
+                  boost-*,
+                  bugprone-*,
+                  -bugprone-macro-*,
+                  cert-dcl21-cpp,
+                  misc-*,
+                  -misc-unused-parameters,
+                  -misc-const-correctness,
+                  cppcoreguidelines-*,
+                  -cppcoreguidelines-init-variables,
+                  -cppcoreguidelines-pro-type-member-init,
+                  -cppcoreguidelines-avoid-magic-numbers,modernize-*,
+                  -modernize-use-trailing-return-type,
+                  -modernize-avoid-bind,
+                  -modernize-return-braced-init-list,
+                  performance-*'
+WarningsAsErrors: false
+HeaderFilterRegex: ''
+AnalyzeTemporaryDtors: false
+CheckOptions:
+  - key:             readability-uppercase-literal-suffix.NewSuffixes
+    value:           'L;LL;LU;LLU'
+  - key:             bugprone-unhandled-self-assignment.WarnOnlyIfThisHasSuspiciousField
+    value:           '0'
+  - key:             cppcoreguidelines-explicit-virtual-functions.IgnoreDestructors
+    value:           '1'
+  - key:             cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic
+    value:           '1'
+  - key:             google-readability-braces-around-statements.ShortStatementLines
+    value:           '1'
+  - key:             google-readability-function-size.StatementThreshold
+    value:           '800'
+  - key:             google-readability-namespace-comments.ShortNamespaceLines
+    value:           '10'
+  - key:             google-readability-namespace-comments.SpacesBeforeComments
+    value:           '2'
+  - key:             modernize-loop-convert.MaxCopySize
+    value:           '16'
+  - key:             modernize-loop-convert.MinConfidence
+    value:           reasonable
+  - key:             modernize-loop-convert.NamingStyle
+    value:           CamelCase
+  - key:             modernize-pass-by-value.IncludeStyle
+    value:           llvm
+  - key:             modernize-replace-auto-ptr.IncludeStyle
+    value:           llvm
+  - key:             modernize-use-nullptr.NullMacros
+    value:           'NULL'
+  - key:             modernize-use-default-member-init.UseAssignment
+    value:           true
+  - key:             modernize-use-transparent-functors.SafeMode
+    value:           true
+  - key:             cppcoreguidelines-init-variables.MathHeader
+    value:           <cmath>
+  - key:             readability-redundant-member-init.IgnoreBaseInCopyConstructors
+    value:           true
+  - key:             modernize-avoid-bind.PermissiveParameterList
+    value:           true
