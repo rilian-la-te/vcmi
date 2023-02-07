@@ -25,15 +25,15 @@ struct DLL_LINKAGE ReachabilityInfo
 
 	struct DLL_LINKAGE Parameters
 	{
-		ui8 side;
-		bool doubleWide;
-		bool flying;
+		ui8 side = 0;
+		bool doubleWide = false;
+		bool flying = false;
 		std::vector<BattleHex> knownAccessible; //hexes that will be treated as accessible, even if they're occupied by stack (by default - tiles occupied by stack we do reachability for, so it doesn't block itself)
 
 		BattleHex startPosition; //assumed position of stack
-		BattlePerspective::BattlePerspective perspective; //some obstacles (eg. quicksands) may be invisible for some side
+		BattlePerspective::BattlePerspective perspective = BattlePerspective::ALL_KNOWING; //some obstacles (eg. quicksands) may be invisible for some side
 
-		Parameters();
+		Parameters() = default;
 		Parameters(const battle::Unit * Stack, BattleHex StartPosition);
 	};
 

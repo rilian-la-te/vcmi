@@ -25,7 +25,7 @@ bool AccessibilityInfo::accessible(BattleHex tile, bool doubleWide, ui8 side) co
 	//do not use getHexes for speed reasons
 	if(!tile.isValid())
 		return false;
-	if(at(tile) != EAccessibility::ACCESSIBLE && !(at(tile) == EAccessibility::GATE && side == BattleSide::DEFENDER))
+	if(at(tile) != EAccessibility::ACCESSIBLE && (at(tile) != EAccessibility::GATE || side != BattleSide::DEFENDER))
 		return false;
 
 	if(doubleWide)
@@ -33,7 +33,7 @@ bool AccessibilityInfo::accessible(BattleHex tile, bool doubleWide, ui8 side) co
 		auto otherHex = battle::Unit::occupiedHex(tile, doubleWide, side);
 		if(!otherHex.isValid())
 			return false;
-		if(at(otherHex) != EAccessibility::ACCESSIBLE && !(at(otherHex) == EAccessibility::GATE && side == BattleSide::DEFENDER))
+		if(at(otherHex) != EAccessibility::ACCESSIBLE && (at(otherHex) != EAccessibility::GATE || side != BattleSide::DEFENDER))
 			return false;
 	}
 

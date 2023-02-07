@@ -24,7 +24,7 @@ const IBattleInfo * CCallbackBase::getBattle() const
 }
 
 CCallbackBase::CCallbackBase(boost::optional<PlayerColor> Player)
-	: battle(nullptr), player(Player)
+	: battle(nullptr), player(std::move(Player))
 {}
 
 CCallbackBase::CCallbackBase()

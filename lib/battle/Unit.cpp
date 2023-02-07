@@ -59,7 +59,7 @@ std::vector<BattleHex> Unit::getSurroundingHexes(BattleHex position, bool twoHex
 
 		if(side == BattleSide::ATTACKER)
 		{
-			for(BattleHex::EDir dir = BattleHex::EDir(0); dir <= BattleHex::EDir(4); dir = BattleHex::EDir(dir+1))
+			for(auto dir = static_cast<BattleHex::EDir>(0); dir <= static_cast<BattleHex::EDir>(4); dir = static_cast<BattleHex::EDir>(dir+1))
 				BattleHex::checkAndPush(position.cloneInDirection(dir, false), hexes);
 
 			BattleHex::checkAndPush(otherHex.cloneInDirection(BattleHex::EDir::BOTTOM_LEFT, false), hexes);
@@ -70,7 +70,7 @@ std::vector<BattleHex> Unit::getSurroundingHexes(BattleHex position, bool twoHex
 		{
 			BattleHex::checkAndPush(position.cloneInDirection(BattleHex::EDir::TOP_LEFT, false), hexes);
 
-			for(BattleHex::EDir dir = BattleHex::EDir(0); dir <= BattleHex::EDir(4); dir = BattleHex::EDir(dir+1))
+			for(auto dir = static_cast<BattleHex::EDir>(0); dir <= static_cast<BattleHex::EDir>(4); dir = static_cast<BattleHex::EDir>(dir+1))
 				BattleHex::checkAndPush(otherHex.cloneInDirection(dir, false), hexes);
 
 			BattleHex::checkAndPush(position.cloneInDirection(BattleHex::EDir::BOTTOM_LEFT, false), hexes);
@@ -166,11 +166,11 @@ BattleHex Unit::occupiedHex(BattleHex assumedPos, bool twoHex, ui8 side)
 void Unit::addText(MetaString & text, ui8 type, int32_t serial, const boost::logic::tribool & plural) const
 {
 	if(boost::logic::indeterminate(plural))
-		serial = VLC->generaltexth->pluralText(serial, getCount());
+		serial = CGeneralTextHandler::pluralText(serial, getCount());
 	else if(plural)
-		serial = VLC->generaltexth->pluralText(serial, 2);
+		serial = CGeneralTextHandler::pluralText(serial, 2);
 	else
-		serial = VLC->generaltexth->pluralText(serial, 1);
+		serial = CGeneralTextHandler::pluralText(serial, 1);
 
 	text.addTxt(type, serial);
 }
@@ -187,7 +187,7 @@ void Unit::addNameReplacement(MetaString & text, const boost::logic::tribool & p
 
 std::string Unit::formatGeneralMessage(const int32_t baseTextId) const
 {
-	const int32_t textId = VLC->generaltexth->pluralText(baseTextId, getCount());
+	const int32_t textId = CGeneralTextHandler::pluralText(baseTextId, getCount());
 
 	MetaString text;
 	text.addTxt(MetaString::GENERAL_TXT, textId);
@@ -209,9 +209,7 @@ int Unit::getRawSurrenderCost() const
 UnitInfo::UnitInfo()
 	: id(0),
 	count(0),
-	type(),
 	side(0),
-	position(),
 	summoned(false)
 {
 }
