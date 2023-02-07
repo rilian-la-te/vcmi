@@ -20,7 +20,7 @@ template <class _Stream> inline uLong streamRead(voidpf opaque, voidpf stream, v
 	assert(opaque != nullptr);
 	assert(stream != nullptr);
 
-	_Stream * actualStream = static_cast<_Stream *>(stream);
+	auto * actualStream = static_cast<_Stream *>(stream);
 
 	return (uLong)actualStream->read((ui8 *)buf, (uLong)size);
 }
@@ -30,7 +30,7 @@ template <class _Stream> inline ZPOS64_T streamTell(voidpf opaque, voidpf stream
 	assert(opaque != nullptr);
 	assert(stream != nullptr);
 
-	_Stream * actualStream = static_cast<_Stream *>(stream);
+	auto * actualStream = static_cast<_Stream *>(stream);
     return actualStream->tell();
 }
 
@@ -39,7 +39,7 @@ template <class _Stream> inline long streamSeek(voidpf opaque, voidpf stream, ZP
 	assert(opaque != nullptr);
 	assert(stream != nullptr);
 
-	_Stream * actualStream = static_cast<_Stream *>(stream);
+	auto * actualStream = static_cast<_Stream *>(stream);
 
     long ret = 0;
     switch (origin)
@@ -71,7 +71,7 @@ template <class _Stream> inline int streamProxyClose(voidpf opaque, voidpf strea
 	assert(opaque != nullptr);
 	assert(stream != nullptr);
 
-	_Stream * actualStream = static_cast<_Stream *>(stream);
+	auto * actualStream = static_cast<_Stream *>(stream);
 
 	logGlobal->trace("Proxy stream closed");
 
@@ -81,15 +81,6 @@ template <class _Stream> inline int streamProxyClose(voidpf opaque, voidpf strea
 }
 
 ///CDefaultIOApi
-CDefaultIOApi::CDefaultIOApi()
-{
-
-}
-
-CDefaultIOApi::~CDefaultIOApi()
-{
-
-}
 
 zlib_filefunc64_def CDefaultIOApi::getApiStructure()
 {
@@ -102,11 +93,8 @@ CProxyIOApi::CProxyIOApi(CInputOutputStream * buffer):
 {
 
 }
-
-CProxyIOApi::~CProxyIOApi()
-{
-
-}
+///This destructor should be located here to avoid side effects
+CProxyIOApi::~CProxyIOApi() = default;
 
 zlib_filefunc64_def CProxyIOApi::getApiStructure()
 {
@@ -145,7 +133,7 @@ uLong ZCALLBACK CProxyIOApi::writeFileProxy(voidpf opaque, voidpf stream, const 
 	assert(opaque != nullptr);
 	assert(stream != nullptr);
 
-	CInputOutputStream * actualStream = static_cast<CInputOutputStream *>(stream);
+	auto * actualStream = static_cast<CInputOutputStream *>(stream);
     return (uLong)actualStream->write((const ui8 *)buf, size);
 }
 
@@ -184,10 +172,8 @@ CProxyROIOApi::CProxyROIOApi(CInputStream * buffer):
 
 }
 
-CProxyROIOApi::~CProxyROIOApi()
-{
-
-}
+///This destructor should be located here to avoid side effects
+CProxyROIOApi::~CProxyROIOApi() = default;
 
 zlib_filefunc64_def CProxyROIOApi::getApiStructure()
 {

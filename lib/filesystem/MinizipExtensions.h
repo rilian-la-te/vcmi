@@ -28,7 +28,7 @@ class CMemoryBuffer;
 class DLL_LINKAGE CIOApi
 {
 public:
-	virtual ~CIOApi(){};
+	virtual ~CIOApi() = default;
 
 	virtual zlib_filefunc64_def getApiStructure() = 0;
 };
@@ -38,9 +38,6 @@ public:
 class DLL_LINKAGE CDefaultIOApi: public CIOApi
 {
 public:
-	CDefaultIOApi();
-	~CDefaultIOApi();
-
 	zlib_filefunc64_def getApiStructure() override;
 };
 
