@@ -33,7 +33,7 @@ public:
 	void configureDefault();
 
 	/// Removes all targets from the global logger.
-	void deconfigure();
+	static void deconfigure();
 
 private:
 	// Gets ELogLevel enum from string. (Should be moved to CLogger as a separate function?)

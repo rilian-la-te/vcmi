@@ -134,13 +134,13 @@ class DLL_LINKAGE CLogFormatter
 {
 public:
 	CLogFormatter();
-	CLogFormatter(const CLogFormatter & copy);
-	CLogFormatter(CLogFormatter && move);
+	CLogFormatter(const CLogFormatter & copy) = default;
+	CLogFormatter(CLogFormatter && move) = default;
 
-	CLogFormatter(const std::string & pattern);
+	CLogFormatter(std::string pattern);
 
-	CLogFormatter & operator=(const CLogFormatter & copy);
-	CLogFormatter & operator=(CLogFormatter && move);
+	CLogFormatter & operator=(const CLogFormatter & copy) = default;
+	CLogFormatter & operator=(CLogFormatter && move) = default;
 
 	void setPattern(const std::string & pattern);
 	void setPattern(std::string && pattern);
@@ -216,7 +216,7 @@ class DLL_LINKAGE CLogFileTarget : public ILogTarget
 public:
 	/// Constructs a CLogFileTarget and opens the file designated by filePath. If the append parameter is true, the file
 	/// will be appended to. Otherwise the file designated by filePath will be truncated before being opened.
-	explicit CLogFileTarget(boost::filesystem::path filePath, bool append = true);
+	explicit CLogFileTarget(const boost::filesystem::path& filePath, bool append = true);
 	~CLogFileTarget();
 
 	const CLogFormatter & getFormatter() const;

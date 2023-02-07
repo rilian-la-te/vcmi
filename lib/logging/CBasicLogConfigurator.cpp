@@ -37,7 +37,7 @@ void CBasicLogConfigurator::configure()
 		const JsonNode & loggers = loggingNode["loggers"];
 		if(!loggers.isNull())
 		{
-			for(auto & loggerNode : loggers.Vector())
+			for(const auto & loggerNode : loggers.Vector())
 			{
 				// Get logger
 				std::string name = loggerNode["domain"].String();
@@ -145,7 +145,7 @@ EConsoleTextColor::EConsoleTextColor CBasicLogConfigurator::getConsoleColor(cons
 
 void CBasicLogConfigurator::deconfigure()
 {
-	auto l = CLogger::getGlobalLogger();
+	auto *l = CLogger::getGlobalLogger();
 	if(l != nullptr)
 		l->clearTargets();
 }
