@@ -30,9 +30,6 @@ public:
 		std::string iconLarge;
 		std::vector<std::shared_ptr<Bonus>> effects;
 
-		LevelInfo();
-		~LevelInfo();
-
 		template <typename Handler> void serialize(Handler & h, const int version)
 		{
 			h & iconSmall;
@@ -51,8 +48,8 @@ private:
 	std::string identifier;
 
 public:
-	CSkill(SecondarySkill id = SecondarySkill::DEFAULT, std::string identifier = "default");
-	~CSkill();
+	CSkill(const SecondarySkill& id = SecondarySkill::DEFAULT, std::string identifier = "default");
+	~CSkill() = default;
 
 	int32_t getIndex() const override;
 	int32_t getIconIndex() const override;
@@ -92,9 +89,6 @@ public:
 class DLL_LINKAGE CSkillHandler: public CHandlerBase<SecondarySkill, Skill, CSkill, SkillService>
 {
 public:
-	CSkillHandler();
-	virtual ~CSkillHandler();
-
 	///IHandler base
 	std::vector<JsonNode> loadLegacyData(size_t dataSize) override;
 	void afterLoadFinalization() override;

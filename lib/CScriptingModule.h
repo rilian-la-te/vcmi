@@ -29,7 +29,7 @@ class DLL_LINKAGE ContextBase : public Context
 {
 public:
 	ContextBase(vstd::CLoggerBase * logger_);
-	virtual ~ContextBase();
+	virtual ~ContextBase() = default;
 protected:
 	vstd::CLoggerBase * logger;
 };
@@ -37,8 +37,8 @@ protected:
 class DLL_LINKAGE Module
 {
 public:
-	Module();
-	virtual ~Module();
+	Module() = default;
+	virtual ~Module() = default;
 
 	virtual std::string compile(const std::string & name, const std::string & source, vstd::CLoggerBase * logger) const = 0;
 

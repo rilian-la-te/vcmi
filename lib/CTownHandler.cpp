@@ -80,7 +80,7 @@ BuildingID CBuilding::getBase() const
 	return build->bid;
 }
 
-si32 CBuilding::getDistance(BuildingID buildID) const
+si32 CBuilding::getDistance(const BuildingID& buildID) const
 {
 	const CBuilding * build = town->buildings.at(buildID);
 	int distance = 0;
@@ -94,18 +94,11 @@ si32 CBuilding::getDistance(BuildingID buildID) const
 	return -1;
 }
 
-void CBuilding::addNewBonus(std::shared_ptr<Bonus> b, BonusList & bonusList)
+void CBuilding::addNewBonus(const std::shared_ptr<Bonus>& b, BonusList & bonusList)
 {
 	bonusList.push_back(b);
 }
 
-CFaction::CFaction()
-{
-	town = nullptr;
-	index = 0;
-	alignment = EAlignment::NEUTRAL;
-	preferUndergroundPlacement = false;
-}
 
 CFaction::~CFaction()
 {
@@ -241,24 +234,23 @@ const CBuilding * CTown::getSpecialBuilding(BuildingSubID::EBuildingSubID subID)
 
 BuildingID::EBuildingID CTown::getBuildingType(BuildingSubID::EBuildingSubID subID) const
 {
-	auto building = getSpecialBuilding(subID);
+	const auto *building = getSpecialBuilding(subID);
 	return building == nullptr ? BuildingID::NONE : building->bid.num;
 }
 
-const std::string CTown::getGreeting(BuildingSubID::EBuildingSubID subID) const
+std::string CTown::getGreeting(BuildingSubID::EBuildingSubID subID) const
 {
-	return VLC->townh->getMappedValue<const std::string, BuildingSubID::EBuildingSubID>(subID, std::string(), specialMessages, false);
+	return CTownHandler::getMappedValue<const std::string, BuildingSubID::EBuildingSubID>(subID, std::string(), specialMessages, false);
 }
 
-void CTown::setGreeting(BuildingSubID::EBuildingSubID subID, const std::string message) const
+void CTown::setGreeting(BuildingSubID::EBuildingSubID subID, const std::string& message) const
 {
 	specialMessages.insert(std::pair<BuildingSubID::EBuildingSubID, const std::string>(subID, message));
 }
 
-CTownHandler::CTownHandler()
+CTownHandler::CTownHandler() 
+	: randomTown(new CTown()), randomFaction(new CFaction())
 {
-	randomTown = new CTown();
-	randomFaction = new CFaction();
 	randomFaction->town = randomTown;
 	randomTown->faction = randomFaction;
 	randomFaction->identifier = "random";
@@ -541,7 +533,7 @@ std::shared_ptr<Bonus> CTownHandler::createBonus(CBuilding * build, Bonus::Bonus
 	return createBonusImpl(build->bid, type, val, prop, descr.str(), subtype);
 }
 
-std::shared_ptr<Bonus> CTownHandler::createBonusImpl(BuildingID building, Bonus::BonusType type, int val, TPropagatorPtr & prop, const std::string & description, int subtype)
+std::shared_ptr<Bonus> CTownHandler::createBonusImpl(const BuildingID& building, Bonus::BonusType type, int val, TPropagatorPtr & prop, const std::string & description, int subtype)
 {
 	auto b = std::make_shared<Bonus>(Bonus::PERMANENT, type, Bonus::TOWN_STRUCTURE, val, building, description, subtype);
 
@@ -553,7 +545,7 @@ std::shared_ptr<Bonus> CTownHandler::createBonusImpl(BuildingID building, Bonus:
 
 void CTownHandler::loadSpecialBuildingBonuses(const JsonNode & source, BonusList & bonusList, CBuilding * building)
 {
-	for(auto b : source.Vector())
+	for(const auto& b : source.Vector())
 	{
 		auto bonus = JsonUtils::parseBuildingBonus(b, building->bid, building->getNameTranslated());
 
@@ -562,9 +554,9 @@ void CTownHandler::loadSpecialBuildingBonuses(const JsonNode & source, BonusList
 
 		if(bonus->limiter != nullptr)
 		{
-			auto limPtr = dynamic_cast<CreatureFactionLimiter*>(bonus->limiter.get());
+			auto *limPtr = dynamic_cast<CreatureFactionLimiter*>(bonus->limiter.get());
 
-			if(limPtr != nullptr && limPtr->faction == (TFaction)-1)
+			if(limPtr != nullptr && limPtr->faction == static_cast<TFaction>(-1))
 				limPtr->faction = building->town->faction->getIndex();
 		}
 		//JsonUtils::parseBuildingBonus produces UNKNOWN type propagator instead of empty.
@@ -580,7 +572,7 @@ void CTownHandler::loadBuilding(CTown * town, const std::string & stringID, cons
 	assert(stringID.find(':') == std::string::npos);
 	assert(!source.meta.empty());
 
-	auto ret = new CBuilding();
+	auto *ret = new CBuilding();
 	ret->bid = getMappedValue<BuildingID, std::string>(stringID, BuildingID::NONE, MappedKeys::BUILDING_NAMES_TO_TYPES, false);
 
 	if(ret->bid == BuildingID::NONE)
@@ -686,7 +678,7 @@ void CTownHandler::loadBuilding(CTown * town, const std::string & stringID, cons
 
 void CTownHandler::loadBuildings(CTown * town, const JsonNode & source)
 {
-	for(auto & node : source.Struct())
+	for(const auto & node : source.Struct())
 	{
 		if (!node.second.isNull())
 		{
@@ -697,7 +689,7 @@ void CTownHandler::loadBuildings(CTown * town, const JsonNode & source)
 
 void CTownHandler::loadStructure(CTown &town, const std::string & stringID, const JsonNode & source)
 {
-	auto ret = new CStructure();
+	auto *ret = new CStructure();
 
 	ret->building = nullptr;
 	ret->buildable = nullptr;
@@ -732,12 +724,12 @@ void CTownHandler::loadStructure(CTown &town, const std::string & stringID, cons
 	ret->borderName = source["border"].String();
 	ret->areaName = source["area"].String();
 
-	town.clientInfo.structures.push_back(ret);
+	town.clientInfo.structures.emplace_back(ret);
 }
 
 void CTownHandler::loadStructures(CTown &town, const JsonNode & source)
 {
-	for(auto &node : source.Struct())
+	for(const auto &node : source.Struct())
 	{
 		if (!node.second.isNull())
 			loadStructure(town, node.first, node.second);
@@ -747,25 +739,25 @@ void CTownHandler::loadStructures(CTown &town, const JsonNode & source)
 void CTownHandler::loadTownHall(CTown &town, const JsonNode & source)
 {
 	auto & dstSlots = town.clientInfo.hallSlots;
-	auto & srcSlots = source.Vector();
+	const auto & srcSlots = source.Vector();
 	dstSlots.resize(srcSlots.size());
 
 	for(size_t i=0; i<dstSlots.size(); i++)
 	{
 		auto & dstRow = dstSlots[i];
-		auto & srcRow = srcSlots[i].Vector();
+		const auto & srcRow = srcSlots[i].Vector();
 		dstRow.resize(srcRow.size());
 
 		for(size_t j=0; j < dstRow.size(); j++)
 		{
 			auto & dstBox = dstRow[j];
-			auto & srcBox = srcRow[j].Vector();
+			const auto & srcBox = srcRow[j].Vector();
 			dstBox.resize(srcBox.size());
 
 			for(size_t k=0; k<dstBox.size(); k++)
 			{
 				auto & dst = dstBox[k];
-				auto & src = srcBox[k];
+				const auto & src = srcBox[k];
 
 				VLC->modh->identifiers.requestIdentifier("building." + town.faction->getJsonKey(), src, [&](si32 identifier)
 				{
@@ -793,7 +785,7 @@ void CTownHandler::loadSiegeScreen(CTown &town, const JsonNode & source)
 	VLC->modh->identifiers.requestIdentifier("creature", source["shooter"], [&town](si32 creature)
 	{
 		auto crId = CreatureID(creature);
-		if(!(*VLC->creh)[crId]->animation.missleFrameAngles.size())
+		if((*VLC->creh)[crId]->animation.missleFrameAngles.empty())
 			logMod->error("Mod '%s' error: Creature '%s' on the Archer's tower is not a shooter. Mod should be fixed. Siege will not work properly!"
 				, town.faction->getNameTranslated()
 				, (*VLC->creh)[crId]->getNameSingularTranslated());
@@ -874,7 +866,7 @@ void CTownHandler::loadClientData(CTown &town, const JsonNode & source)
 
 void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 {
-	auto resIter = boost::find(GameConstants::RESOURCE_NAMES, source["primaryResource"].String());
+	const auto *resIter = boost::find(GameConstants::RESOURCE_NAMES, source["primaryResource"].String());
 	if(resIter == std::end(GameConstants::RESOURCE_NAMES))
 		town->primaryRes = Res::WOOD_AND_ORE; //Wood + Ore
 	else
@@ -896,12 +888,12 @@ void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 
 	//  Horde building creature level
 	for(const JsonNode &node : source["horde"].Vector())
-		town->hordeLvl[(int)town->hordeLvl.size()] = static_cast<int>(node.Float());
+		town->hordeLvl[static_cast<int>(town->hordeLvl.size())] = static_cast<int>(node.Float());
 
 	// town needs to have exactly 2 horde entries. Validation will take care of 2+ entries
 	// but anything below 2 must be handled here
 	for (size_t i=source["horde"].Vector().size(); i<2; i++)
-		town->hordeLvl[(int)i] = -1;
+		town->hordeLvl[static_cast<int>(i)] = -1;
 
 	const JsonVector & creatures = source["creatures"].Vector();
 
@@ -924,7 +916,7 @@ void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 
 	town->defaultTavernChance = static_cast<ui32>(source["defaultTavern"].Float());
 	/// set chance of specific hero class to appear in this town
-	for(auto &node : source["tavern"].Struct())
+	for(const auto &node : source["tavern"].Struct())
 	{
 		int chance = static_cast<int>(node.second.Float());
 
@@ -934,7 +926,7 @@ void CTownHandler::loadTown(CTown * town, const JsonNode & source)
 		});
 	}
 
-	for(auto &node : source["guildSpells"].Struct())
+	for(const auto &node : source["guildSpells"].Struct())
 	{
 		int chance = static_cast<int>(node.second.Float());
 
@@ -984,7 +976,7 @@ CFaction * CTownHandler::loadFromJson(const std::string & scope, const JsonNode 
 {
 	assert(identifier.find(':') == std::string::npos);
 
-	auto faction = new CFaction();
+	auto *faction = new CFaction();
 
 	faction->index = static_cast<TFaction>(index);
 	faction->modScope = scope;
@@ -1033,9 +1025,9 @@ CFaction * CTownHandler::loadFromJson(const std::string & scope, const JsonNode 
 
 void CTownHandler::loadObject(std::string scope, std::string name, const JsonNode & data)
 {
-	auto object = loadFromJson(scope, data, name, objects.size());
+	auto *object = loadFromJson(scope, data, name, objects.size());
 
-	objects.push_back(object);
+	objects.emplace_back(object);
 
 	if (object->town)
 	{
@@ -1056,7 +1048,7 @@ void CTownHandler::loadObject(std::string scope, std::string name, const JsonNod
 			VLC->objtypeh->loadSubObject(object->identifier, config, index, object->index);
 
 			// MODS COMPATIBILITY FOR 0.96
-			auto & advMap = data["town"]["adventureMap"];
+			const auto & advMap = data["town"]["adventureMap"];
 			if (!advMap.isNull())
 			{
 				logMod->warn("Outdated town mod. Will try to generate valid templates out of fort");
@@ -1072,7 +1064,7 @@ void CTownHandler::loadObject(std::string scope, std::string name, const JsonNod
 
 void CTownHandler::loadObject(std::string scope, std::string name, const JsonNode & data, size_t index)
 {
-	auto object = loadFromJson(scope, data, name, index);
+	auto *object = loadFromJson(scope, data, name, index);
 
 	if (objects.size() > index)
 		assert(objects[index] == nullptr); // ensure that this id was not loaded before
@@ -1148,7 +1140,7 @@ void CTownHandler::initializeOverridden()
 		auto jsonNode = bidHelper.json;
 		auto scope = bidHelper.town->getBuildingScope();
 
-		for(auto b : jsonNode.Vector())
+		for(const auto& b : jsonNode.Vector())
 		{
 			auto bid = BuildingID(VLC->modh->identifiers.getIdentifier(scope, b).get());
 			bidHelper.building->overrideBids.insert(bid);
@@ -1181,6 +1173,7 @@ void CTownHandler::initializeWarMachines()
 std::vector<bool> CTownHandler::getDefaultAllowed() const
 {
 	std::vector<bool> allowedFactions;
+	allowedFactions.reserve(objects.size());
 	for(auto town : objects)
 	{
 		allowedFactions.push_back(town->town != nullptr);
@@ -1199,7 +1192,7 @@ std::set<TFaction> CTownHandler::getAllowedFactions(bool withTown) const
 
 	for (size_t i=0; i<allowed.size(); i++)
 		if (allowed[i])
-			allowedFactions.insert((TFaction)i);
+			allowedFactions.insert(static_cast<TFaction>(i));
 
 	return allowedFactions;
 }

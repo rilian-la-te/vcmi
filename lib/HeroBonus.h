@@ -75,9 +75,9 @@ class DLL_LINKAGE CBonusProxy
 public:
 	CBonusProxy(const IBonusBearer * Target, CSelector Selector);
 	CBonusProxy(const CBonusProxy & other);
-	CBonusProxy(CBonusProxy && other);
+	CBonusProxy(CBonusProxy && other) noexcept;
 
-	CBonusProxy & operator=(CBonusProxy && other);
+	CBonusProxy & operator=(CBonusProxy && other) noexcept;
 	CBonusProxy & operator=(const CBonusProxy & other);
 	const BonusList * operator->() const;
 	TConstBonusListPtr getBonusList() const;
@@ -99,7 +99,7 @@ public:
 	CTotalsProxy(const CTotalsProxy & other);
 	CTotalsProxy(CTotalsProxy && other) = delete;
 
-	CTotalsProxy & operator=(const CTotalsProxy & other);
+	CTotalsProxy & operator=(const CTotalsProxy & other) = default;
 	CTotalsProxy & operator=(CTotalsProxy && other) = delete;
 
 	int getMeleeValue() const;
@@ -115,8 +115,8 @@ public:
 private:
 	int initialValue;
 
-	mutable int64_t valueCachedLast;
-	mutable int value;
+	mutable int64_t valueCachedLast{};
+	mutable int value{};
 
 	mutable int64_t meleeCachedLast;
 	mutable int meleeValue;
@@ -406,20 +406,20 @@ struct DLL_LINKAGE Bonus : public std::enable_shared_from_this<Bonus>
 #undef BONUS_VALUE
 	};
 
-	ui16 duration; //uses BonusDuration values
-	si16 turnsRemain; //used if duration is N_TURNS, N_DAYS or ONE_WEEK
+	ui16 duration = PERMANENT; //uses BonusDuration values
+	si16 turnsRemain = 0; //used if duration is N_TURNS, N_DAYS or ONE_WEEK
 
-	BonusType type; //uses BonusType values - says to what is this bonus - 1 byte
-	TBonusSubtype subtype; //-1 if not applicable - 4 bytes
+	BonusType type = NONE; //uses BonusType values - says to what is this bonus - 1 byte
+	TBonusSubtype subtype = -1; //-1 if not applicable - 4 bytes
 
-	BonusSource source;//source type" uses BonusSource values - what gave that bonus
-	si32 val;
-	ui32 sid; //source id: id of object/artifact/spell
-	ValueType valType;
+	BonusSource source = OTHER;//source type" uses BonusSource values - what gave that bonus
+	si32 val = 0;
+	ui32 sid = 0; //source id: id of object/artifact/spell
+	ValueType valType = ADDITIVE_VALUE;
 	std::string stacking; // bonuses with the same stacking value don't stack (e.g. Angel/Archangel morale bonus)
 
 	CAddInfo additionalInfo;
-	LimitEffect effectRange; //if not NO_LIMIT, bonus will be omitted by default
+	LimitEffect effectRange = NO_LIMIT; //if not NO_LIMIT, bonus will be omitted by default
 
 	TLimiterPtr limiter;
 	TPropagatorPtr propagator;
@@ -430,7 +430,7 @@ struct DLL_LINKAGE Bonus : public std::enable_shared_from_this<Bonus>
 
 	Bonus(BonusDuration Duration, BonusType Type, BonusSource Src, si32 Val, ui32 ID, std::string Desc, si32 Subtype=-1);
 	Bonus(BonusDuration Duration, BonusType Type, BonusSource Src, si32 Val, ui32 ID, si32 Subtype=-1, ValueType ValType = ADDITIVE_VALUE);
-	Bonus();
+	Bonus() = default;
 
 	template <typename Handler> void serialize(Handler &h, const int version)
 	{
@@ -514,7 +514,7 @@ struct DLL_LINKAGE Bonus : public std::enable_shared_from_this<Bonus>
 	JsonNode toJsonNode() const;
 	std::string nameForBonus() const; // generate suitable name for bonus - e.g. for storing in json struct
 
-	std::shared_ptr<Bonus> addLimiter(TLimiterPtr Limiter); //returns this for convenient chain-calls
+	std::shared_ptr<Bonus> addLimiter(const TLimiterPtr& Limiter); //returns this for convenient chain-calls
 	std::shared_ptr<Bonus> addPropagator(TPropagatorPtr Propagator); //returns this for convenient chain-calls
 	std::shared_ptr<Bonus> addUpdater(TUpdaterPtr Updater); //returns this for convenient chain-calls
 	void updateOppositeBonuses();
@@ -530,7 +530,7 @@ public:
 private:
 	TInternalContainer bonuses;
 	bool belongsToTree;
-	void changed();
+	void changed() const;
 
 public:
 	typedef TInternalContainer::const_reference const_reference;
@@ -541,16 +541,16 @@ public:
 
 	BonusList(bool BelongsToTree = false);
 	BonusList(const BonusList &bonusList);
-	BonusList(BonusList && other);
+	BonusList(BonusList && other) noexcept;
 	BonusList& operator=(const BonusList &bonusList);
 
 	// wrapper functions of the STL vector container
 	TInternalContainer::size_type size() const { return bonuses.size(); }
-	void push_back(std::shared_ptr<Bonus> x);
+	void push_back(const std::shared_ptr<Bonus>& x);
 	TInternalContainer::iterator erase (const int position);
 	void clear();
 	bool empty() const { return bonuses.empty(); }
-	void resize(TInternalContainer::size_type sz, std::shared_ptr<Bonus> c = nullptr );
+	void resize(TInternalContainer::size_type sz, const std::shared_ptr<Bonus>& c = nullptr );
 	void reserve(TInternalContainer::size_type sz);
 	TInternalContainer::size_type capacity() const { return bonuses.capacity(); }
 	STRONG_INLINE std::shared_ptr<Bonus> &operator[] (TInternalContainer::size_type n) { return bonuses[n]; }
@@ -656,7 +656,7 @@ class DLL_LINKAGE ILimiter
 public:
 	enum EDecision {ACCEPT, DISCARD, NOT_SURE};
 
-	virtual ~ILimiter();
+	virtual ~ILimiter() = default;
 
 	virtual int limit(const BonusLimitationContext &context) const; //0 - accept bonus; 1 - drop bonus; 2 - delay (drops eventually)
 	virtual std::string toString() const;
@@ -765,13 +765,13 @@ private:
 
 	void getAllBonusesRec(BonusList &out) const;
 	TConstBonusListPtr getAllBonusesWithoutCaching(const CSelector &selector, const CSelector &limit, const CBonusSystemNode *root = nullptr) const;
-	std::shared_ptr<Bonus> getUpdatedBonus(const std::shared_ptr<Bonus> & b, const TUpdaterPtr updater) const;
+	std::shared_ptr<Bonus> getUpdatedBonus(const std::shared_ptr<Bonus> & b, const TUpdaterPtr& updater) const;
 
 public:
 	explicit CBonusSystemNode();
 	explicit CBonusSystemNode(bool isHypotetic);
 	explicit CBonusSystemNode(ENodeTypes NodeType);
-	CBonusSystemNode(CBonusSystemNode && other);
+	CBonusSystemNode(CBonusSystemNode && other) noexcept;
 	virtual ~CBonusSystemNode();
 
 	void limitBonuses(const BonusList &allBonuses, BonusList &out) const; //out will bo populed with bonuses that are not limited here
@@ -799,8 +799,8 @@ public:
 
 	void newChildAttached(CBonusSystemNode & child);
 	void childDetached(CBonusSystemNode & child);
-	void propagateBonus(std::shared_ptr<Bonus> b, const CBonusSystemNode & source);
-	void unpropagateBonus(std::shared_ptr<Bonus> b);
+	void propagateBonus(const std::shared_ptr<Bonus>& b, const CBonusSystemNode & source);
+	void unpropagateBonus(const std::shared_ptr<Bonus>& b);
 	void removeBonus(const std::shared_ptr<Bonus>& b);
 	void removeBonuses(const CSelector & selector);
 	void removeBonusesRecursive(const CSelector & s);
@@ -817,7 +817,7 @@ public:
 	bool isHypothetic() const { return isHypotheticNode; }
 
 	void deserializationFix();
-	void exportBonus(std::shared_ptr<Bonus> b);
+	void exportBonus(const std::shared_ptr<Bonus>& b);
 	void exportBonuses();
 
 	const BonusList &getBonusList() const;
@@ -855,7 +855,7 @@ public:
 class DLL_LINKAGE IPropagator
 {
 public:
-	virtual ~IPropagator();
+	virtual ~IPropagator() = default;
 	virtual bool shouldBeAttached(CBonusSystemNode *dest);
 	virtual CBonusSystemNode::ENodeTypes getPropagatorType() const;
 
@@ -977,7 +977,7 @@ protected:
 	std::vector<TLimiterPtr> limiters;
 	virtual const std::string & getAggregator() const = 0;
 public:
-	void add(TLimiterPtr limiter);
+	void add(const TLimiterPtr& limiter);
 	JsonNode toJsonNode() const override;
 
 	template <typename Handler> void serialize(Handler & h, const int version)
@@ -1017,12 +1017,12 @@ public:
 class DLL_LINKAGE CCreatureTypeLimiter : public ILimiter //affect only stacks of given creature (and optionally it's upgrades)
 {
 public:
-	const CCreature *creature;
-	bool includeUpgrades;
+	const CCreature *creature = nullptr;
+	bool includeUpgrades = false;
 
-	CCreatureTypeLimiter();
+	CCreatureTypeLimiter() = default;
 	CCreatureTypeLimiter(const CCreature & creature_, bool IncludeUpgrades = true);
-	void setCreature (CreatureID id);
+	void setCreature (const CreatureID& id);
 
 	int limit(const BonusLimitationContext &context) const override;
 	virtual std::string toString() const override;
@@ -1118,7 +1118,7 @@ class DLL_LINKAGE StackOwnerLimiter : public ILimiter //applies only to creature
 public:
 	PlayerColor owner;
 	StackOwnerLimiter();
-	StackOwnerLimiter(PlayerColor Owner);
+	StackOwnerLimiter(const PlayerColor& Owner);
 
 	int limit(const BonusLimitationContext &context) const override;
 
@@ -1134,7 +1134,7 @@ class DLL_LINKAGE OppositeSideLimiter : public ILimiter //applies only to creatu
 public:
 	PlayerColor owner;
 	OppositeSideLimiter();
-	OppositeSideLimiter(PlayerColor Owner);
+	OppositeSideLimiter(const PlayerColor& Owner);
 
 	int limit(const BonusLimitationContext &context) const override;
 
@@ -1173,7 +1173,7 @@ namespace Selector
 	extern DLL_LINKAGE CWillLastDays days;
 
 	CSelector DLL_LINKAGE typeSubtype(Bonus::BonusType Type, TBonusSubtype Subtype);
-	CSelector DLL_LINKAGE typeSubtypeInfo(Bonus::BonusType type, TBonusSubtype subtype, CAddInfo info);
+	CSelector DLL_LINKAGE typeSubtypeInfo(Bonus::BonusType type, TBonusSubtype subtype, const CAddInfo& info);
 	CSelector DLL_LINKAGE source(Bonus::BonusSource source, ui32 sourceID);
 	CSelector DLL_LINKAGE sourceTypeSel(Bonus::BonusSource source);
 	CSelector DLL_LINKAGE valueType(Bonus::ValueType valType);
@@ -1216,7 +1216,7 @@ void BonusList::insert(const int position, InputIterator first, InputIterator la
 class DLL_LINKAGE IUpdater
 {
 public:
-	virtual ~IUpdater();
+	virtual ~IUpdater() = default;
 
 	virtual std::shared_ptr<Bonus> createUpdatedBonus(const std::shared_ptr<Bonus> & b, const CBonusSystemNode & context) const;
 	virtual std::string toString() const;
@@ -1230,10 +1230,10 @@ public:
 class DLL_LINKAGE GrowsWithLevelUpdater : public IUpdater
 {
 public:
-	int valPer20;
-	int stepSize;
+	int valPer20 = 0;
+	int stepSize = 1;
 
-	GrowsWithLevelUpdater();
+	GrowsWithLevelUpdater() = default;
 	GrowsWithLevelUpdater(int valPer20, int stepSize = 1);
 
 	template <typename Handler> void serialize(Handler & h, const int version)
@@ -1251,7 +1251,7 @@ public:
 class DLL_LINKAGE TimesHeroLevelUpdater : public IUpdater
 {
 public:
-	TimesHeroLevelUpdater();
+	TimesHeroLevelUpdater() = default;
 
 	template <typename Handler> void serialize(Handler & h, const int version)
 	{
@@ -1266,7 +1266,7 @@ public:
 class DLL_LINKAGE TimesStackLevelUpdater : public IUpdater
 {
 public:
-	TimesStackLevelUpdater();
+	TimesStackLevelUpdater() = default;
 
 	template <typename Handler> void serialize(Handler & h, const int version)
 	{
@@ -1281,7 +1281,7 @@ public:
 class DLL_LINKAGE OwnerUpdater : public IUpdater
 {
 public:
-	OwnerUpdater();
+	OwnerUpdater() = default;
 
 	template <typename Handler> void serialize(Handler& h, const int version)
 	{

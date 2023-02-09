@@ -61,7 +61,7 @@ public:
 	int moveCost;
 	bool transitionRequired;
 	
-	TerrainType();
+	TerrainType() = default;
 	
 	bool isLand() const;
 	bool isWater() const;

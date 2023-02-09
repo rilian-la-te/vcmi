@@ -99,10 +99,8 @@ const std::map<std::string, TUpdaterPtr> bonusUpdaterMap =
 CBonusProxy::CBonusProxy(const IBonusBearer * Target, CSelector Selector)
 	: bonusListCachedLast(0),
 	target(Target),
-	selector(Selector),
-	bonusList(),
-	currentBonusListIndex(0),
-	swapGuard()
+	selector(std::move(Selector)),
+	currentBonusListIndex(0)
 {
 
 }
@@ -111,19 +109,15 @@ CBonusProxy::CBonusProxy(const CBonusProxy & other)
 	: bonusListCachedLast(other.bonusListCachedLast),
 	target(other.target),
 	selector(other.selector),
-	currentBonusListIndex(other.currentBonusListIndex),
-	swapGuard()
+	currentBonusListIndex(other.currentBonusListIndex)
 {
 	bonusList[currentBonusListIndex] = other.bonusList[currentBonusListIndex];
 }
 
-CBonusProxy::CBonusProxy(CBonusProxy && other)
-	: bonusListCachedLast(0),
+CBonusProxy::CBonusProxy(CBonusProxy && other) noexcept:
+	bonusListCachedLast(0),
 	target(other.target),
-	selector(),
-	bonusList(),
-	currentBonusListIndex(0),
-	swapGuard()
+	currentBonusListIndex(0)
 {
 	std::swap(bonusListCachedLast, other.bonusListCachedLast);
 	std::swap(selector, other.selector);
@@ -142,7 +136,7 @@ CBonusProxy & CBonusProxy::operator=(const CBonusProxy & other)
 	return *this;
 }
 
-CBonusProxy & CBonusProxy::operator=(CBonusProxy && other)
+CBonusProxy & CBonusProxy::operator=(CBonusProxy && other) noexcept 
 {
 	std::swap(bonusListCachedLast, other.bonusListCachedLast);
 	std::swap(selector, other.selector);
@@ -158,7 +152,7 @@ void CBonusProxy::swapBonusList(TConstBonusListPtr other) const
 	// Because such use of shared ptr is not thread safe
 	// So to avoid this we change the second offline instance and swap active index
 	auto newCurrent = 1 - currentBonusListIndex;
-	bonusList[newCurrent] = other;
+	bonusList[newCurrent] = std::move(other);
 	currentBonusListIndex = newCurrent;
 }
 
@@ -191,14 +185,12 @@ const BonusList * CBonusProxy::operator->() const
 }
 
 CTotalsProxy::CTotalsProxy(const IBonusBearer * Target, CSelector Selector, int InitialValue)
-	: CBonusProxy(Target, Selector),
+	: CBonusProxy(Target, std::move(Selector)),
 	initialValue(InitialValue),
 	meleeCachedLast(0),
 	meleeValue(0),
 	rangedCachedLast(0),
-	rangedValue(0),
-	value(0),
-	valueCachedLast(0)
+	rangedValue(0)
 {
 }
 
@@ -210,20 +202,6 @@ CTotalsProxy::CTotalsProxy(const CTotalsProxy & other)
 	rangedCachedLast(other.rangedCachedLast),
 	rangedValue(other.rangedValue)
 {
-}
-
-CTotalsProxy & CTotalsProxy::operator=(const CTotalsProxy & other)
-{
-	CBonusProxy::operator=(other);
-	initialValue = other.initialValue;
-	meleeCachedLast = other.meleeCachedLast;
-	meleeValue = other.meleeValue;
-	rangedCachedLast = other.rangedCachedLast;
-	rangedValue = other.rangedValue;
-	value = other.value;
-	valueCachedLast = other.valueCachedLast;
-
-	return *this;
 }
 
 int CTotalsProxy::getValue() const
@@ -288,19 +266,14 @@ int CTotalsProxy::getRangedValue() const
 ///CCheckProxy
 CCheckProxy::CCheckProxy(const IBonusBearer * Target, CSelector Selector)
 	: target(Target),
-	selector(Selector),
+	selector(std::move(Selector)),
 	cachedLast(0),
 	hasBonus(false)
 {
 }
 
-CCheckProxy::CCheckProxy(const CCheckProxy & other)
-	: target(other.target),
-	selector(other.selector),
-	cachedLast(other.cachedLast),
-	hasBonus(other.hasBonus)
-{
-}
+//This constructor should be placed here to avoid side effects
+CCheckProxy::CCheckProxy(const CCheckProxy & other) = default;
 
 bool CCheckProxy::getHasBonus() const
 {
@@ -315,9 +288,8 @@ bool CCheckProxy::getHasBonus() const
 	return hasBonus;
 }
 
-CAddInfo::CAddInfo()
-{
-}
+//This constructor should be placed here to avoid side effects
+CAddInfo::CAddInfo() = default;
 
 CAddInfo::CAddInfo(si32 value)
 {
@@ -383,14 +355,13 @@ BonusList::BonusList(bool BelongsToTree) : belongsToTree(BelongsToTree)
 
 }
 
-BonusList::BonusList(const BonusList &bonusList)
+BonusList::BonusList(const BonusList &bonusList) : belongsToTree(false)
 {
 	bonuses.resize(bonusList.size());
 	std::copy(bonusList.begin(), bonusList.end(), bonuses.begin());
-	belongsToTree = false;
 }
 
-BonusList::BonusList(BonusList&& other):
+BonusList::BonusList(BonusList&& other) noexcept:
 	belongsToTree(false)
 {
 	std::swap(belongsToTree, other.belongsToTree);
@@ -405,7 +376,7 @@ BonusList& BonusList::operator=(const BonusList &bonusList)
 	return *this;
 }
 
-void BonusList::changed()
+void BonusList::changed() const
 {
     if(belongsToTree)
 		CBonusSystemNode::treeHasChanged();
@@ -413,7 +384,7 @@ void BonusList::changed()
 
 void BonusList::stackBonuses()
 {
-	boost::sort(bonuses, [](std::shared_ptr<Bonus> b1, std::shared_ptr<Bonus> b2) -> bool
+	boost::sort(bonuses, [](const std::shared_ptr<Bonus>& b1, const std::shared_ptr<Bonus>& b2) -> bool
 	{
 		if(b1 == b2)
 			return false;
@@ -429,7 +400,7 @@ void BonusList::stackBonuses()
 	size_t next = 1;
 	while(next < bonuses.size())
 	{
-		bool remove;
+		bool remove = false;
 		std::shared_ptr<Bonus> last = bonuses[next-1];
 		std::shared_ptr<Bonus> current = bonuses[next];
 
@@ -461,7 +432,7 @@ int BonusList::totalValue() const
 	int indepMin = 0;
 	bool hasIndepMin = false;
 
-	for(std::shared_ptr<Bonus> b : bonuses)
+	for(const std::shared_ptr<Bonus>& b : bonuses)
 	{
 		switch(b->valType)
 		{
@@ -508,10 +479,10 @@ int BonusList::totalValue() const
 	if(hasIndepMin && hasIndepMax)
 		assert(indepMin < indepMax);
 
-	const int notIndepBonuses = (int)boost::count_if(bonuses, [](const std::shared_ptr<Bonus>& b)
+	const int notIndepBonuses = static_cast<int>(boost::count_if(bonuses, [](const std::shared_ptr<Bonus>& b)
 	{
 		return b->valType != Bonus::INDEPENDENT_MAX && b->valType != Bonus::INDEPENDENT_MIN;
-	});
+	}));
 
 	if (hasIndepMax)
 	{
@@ -543,7 +514,7 @@ std::shared_ptr<Bonus> BonusList::getFirst(const CSelector &select)
 
 std::shared_ptr<const Bonus> BonusList::getFirst(const CSelector &selector) const
 {
-	for (auto & b : bonuses)
+	for (const auto & b : bonuses)
 	{
 		if(selector(b.get()))
 			return b;
@@ -559,7 +530,7 @@ void BonusList::getBonuses(BonusList & out, const CSelector &selector) const
 void BonusList::getBonuses(BonusList & out, const CSelector &selector, const CSelector &limit) const
 {
 	out.reserve(bonuses.size());
-	for (auto & b : bonuses)
+	for (const auto & b : bonuses)
 	{
 		//add matching bonuses that matches limit predicate or have NO_LIMIT if no given predicate
 		auto noFightLimit = b->effectRange == Bonus::NO_LIMIT || b->effectRange == Bonus::ONLY_ENEMY_ARMY;
@@ -570,7 +541,7 @@ void BonusList::getBonuses(BonusList & out, const CSelector &selector, const CSe
 
 void BonusList::getAllBonuses(BonusList &out) const
 {
-	for(auto & b : bonuses)
+	for(const auto & b : bonuses)
 		out.push_back(b);
 }
 
@@ -585,12 +556,12 @@ int BonusList::valOfBonuses(const CSelector &select) const
 JsonNode BonusList::toJsonNode() const
 {
 	JsonNode node(JsonNode::JsonType::DATA_VECTOR);
-	for(std::shared_ptr<Bonus> b : bonuses)
+	for(const std::shared_ptr<Bonus>& b : bonuses)
 		node.Vector().push_back(b->toJsonNode());
 	return node;
 }
 
-void BonusList::push_back(std::shared_ptr<Bonus> x)
+void BonusList::push_back(const std::shared_ptr<Bonus>& x)
 {
 	bonuses.push_back(x);
 	changed();
@@ -618,7 +589,7 @@ std::vector<BonusList*>::size_type BonusList::operator-=(std::shared_ptr<Bonus> 
 	return true;
 }
 
-void BonusList::resize(BonusList::TInternalContainer::size_type sz, std::shared_ptr<Bonus> c )
+void BonusList::resize(BonusList::TInternalContainer::size_type sz, const std::shared_ptr<Bonus>& c )
 {
 	bonuses.resize(sz, c);
 	changed();
@@ -664,7 +635,7 @@ int IBonusBearer::valOfBonuses(Bonus::BonusType type, const CSelector &selector)
 int IBonusBearer::valOfBonuses(Bonus::BonusType type, int subtype) const
 {
 	//This part is performance-critical
-	std::string cachingStr = "type_" + std::to_string(int(type)) + "_" + std::to_string(subtype);
+	std::string cachingStr = "type_" + std::to_string(static_cast<int>(type)) + "_" + std::to_string(subtype);
 
 	CSelector s = Selector::type()(type);
 	if(subtype != -1)
@@ -693,7 +664,7 @@ bool IBonusBearer::hasBonus(const CSelector &selector, const CSelector &limit, c
 bool IBonusBearer::hasBonusOfType(Bonus::BonusType type, int subtype) const
 {
 	//This part is performance-ciritcal
-	std::string cachingStr = "type_" + std::to_string(int(type)) + "_" + std::to_string(subtype);
+	std::string cachingStr = "type_" + std::to_string(static_cast<int>(type)) + "_" + std::to_string(subtype);
 
 	CSelector s = Selector::type()(type);
 	if(subtype != -1)
@@ -715,7 +686,7 @@ TConstBonusListPtr IBonusBearer::getBonuses(const CSelector &selector, const CSe
 bool IBonusBearer::hasBonusFrom(Bonus::BonusSource source, ui32 sourceID) const
 {
 	boost::format fmt("source_%did_%d");
-	fmt % (int)source % sourceID;
+	fmt % static_cast<int>(source) % sourceID;
 
 	return hasBonus(Selector::source(source,sourceID), fmt.str());
 }
@@ -820,7 +791,7 @@ int IBonusBearer::getMaxDamage(bool ranged) const
 
 si32 IBonusBearer::manaLimit() const
 {
-	return si32(getPrimSkillLevel(PrimarySkill::KNOWLEDGE)
+	return static_cast<si32>(getPrimSkillLevel(PrimarySkill::KNOWLEDGE)
 		* (100.0 + valOfBonuses(Bonus::SECONDARY_SKILL_PREMY, SecondarySkill::INTELLIGENCE))
 		/ 10.0);
 }
@@ -879,7 +850,7 @@ const CStack * retrieveStackBattle(const CBonusSystemNode * node)
 	switch(node->getNodeType())
 	{
 	case CBonusSystemNode::STACK_BATTLE:
-		return static_cast<const CStack*>(node);
+		return dynamic_cast<const CStack*>(node);
 	default:
 		return nullptr;
 	}
@@ -890,9 +861,9 @@ const CStackInstance * retrieveStackInstance(const CBonusSystemNode * node)
 	switch(node->getNodeType())
 	{
 	case CBonusSystemNode::STACK_INSTANCE:
-		return (static_cast<const CStackInstance *>(node));
+		return (dynamic_cast<const CStackInstance *>(node));
 	case CBonusSystemNode::STACK_BATTLE:
-		return (static_cast<const CStack*>(node))->base;
+		return (dynamic_cast<const CStack*>(node))->base;
 	default:
 		return nullptr;
 	}
@@ -926,7 +897,7 @@ std::shared_ptr<const Bonus> CBonusSystemNode::getBonusLocalFirst(const CSelecto
 
 void CBonusSystemNode::getParents(TCNodes & out) const /*retrieves list of parent nodes (nodes to inherit bonuses from) */
 {
-	for (auto & elem : parents)
+	for (const auto & elem : parents)
 	{
 		const CBonusSystemNode *parent = elem;
 		out.insert(parent);
@@ -944,7 +915,7 @@ void CBonusSystemNode::getParents(TNodes &out)
 
 void CBonusSystemNode::getAllParents(TCNodes & out) const //retrieves list of parent nodes (nodes to inherit bonuses from)
 {
-	for(auto parent : parents)
+	for(auto *parent : parents)
 	{
 		out.insert(parent);
 		parent->getAllParents(out);
@@ -959,7 +930,7 @@ void CBonusSystemNode::getAllBonusesRec(BonusList &out) const
 	TCNodes lparents;
 	getAllParents(lparents);
 
-	if (lparents.size())
+	if (!lparents.empty())
 	{
 		//estimate on how many bonuses are missing yet - must be positive
 		beforeUpdate.reserve(std::max(out.capacity() - out.size(), bonuses.size()));
@@ -969,7 +940,7 @@ void CBonusSystemNode::getAllBonusesRec(BonusList &out) const
 		beforeUpdate.reserve(bonuses.size()); //at most all local bonuses
 	}
 
-	for (auto parent : lparents)
+	for (const auto *parent : lparents)
 	{
 		parent->getAllBonusesRec(beforeUpdate);
 	}
@@ -1055,7 +1026,8 @@ TConstBonusListPtr CBonusSystemNode::getAllBonusesWithoutCaching(const CSelector
 	auto ret = std::make_shared<BonusList>();
 
 	// Get bonus results without caching enabled.
-	BonusList beforeLimiting, afterLimiting;
+	BonusList beforeLimiting;
+	BonusList afterLimiting;
 	getAllBonusesRec(beforeLimiting);
 
 	if(!root || root == this)
@@ -1066,15 +1038,16 @@ TConstBonusListPtr CBonusSystemNode::getAllBonusesWithoutCaching(const CSelector
 	{
 		//We want to limit our query against an external node. We get all its bonuses,
 		// add the ones we're considering and see if they're cut out by limiters
-		BonusList rootBonuses, limitedRootBonuses;
+		BonusList rootBonuses;
+		BonusList limitedRootBonuses;
 		getAllBonusesRec(rootBonuses);
 
-		for(auto b : beforeLimiting)
+		for(const auto& b : beforeLimiting)
 			rootBonuses.push_back(b);
 
 		root->limitBonuses(rootBonuses, limitedRootBonuses);
 
-		for(auto b : beforeLimiting)
+		for(const auto& b : beforeLimiting)
 			if(vstd::contains(limitedRootBonuses, b))
 				afterLimiting.push_back(b);
 
@@ -1084,7 +1057,7 @@ TConstBonusListPtr CBonusSystemNode::getAllBonusesWithoutCaching(const CSelector
 	return ret;
 }
 
-std::shared_ptr<Bonus> CBonusSystemNode::getUpdatedBonus(const std::shared_ptr<Bonus> & b, const TUpdaterPtr updater) const
+std::shared_ptr<Bonus> CBonusSystemNode::getUpdatedBonus(const std::shared_ptr<Bonus> & b, const TUpdaterPtr& updater) const
 {
 	assert(updater);
 	return updater->createUpdatedBonus(b, * this);
@@ -1100,7 +1073,6 @@ CBonusSystemNode::CBonusSystemNode(bool isHypotetic)
 	exportedBonuses(true),
 	nodeType(UNKNOWN),
 	cachedLast(0),
-	sync(),
 	isHypotheticNode(isHypotetic)
 {
 }
@@ -1110,18 +1082,16 @@ CBonusSystemNode::CBonusSystemNode(ENodeTypes NodeType)
 	exportedBonuses(true),
 	nodeType(NodeType),
 	cachedLast(0),
-	sync(),
 	isHypotheticNode(false)
 {
 }
 
-CBonusSystemNode::CBonusSystemNode(CBonusSystemNode && other):
+CBonusSystemNode::CBonusSystemNode(CBonusSystemNode && other) noexcept :
 	bonuses(std::move(other.bonuses)),
 	exportedBonuses(std::move(other.exportedBonuses)),
 	nodeType(other.nodeType),
 	description(other.description),
 	cachedLast(0),
-	sync(),
 	isHypotheticNode(other.isHypotheticNode)
 {
 	std::swap(parents, other.parents);
@@ -1154,9 +1124,9 @@ CBonusSystemNode::~CBonusSystemNode()
 {
 	detachFromAll();
 
-	if(children.size())
+	if(!children.empty())
 	{
-		while(children.size())
+		while(!children.empty())
 			children.front()->detachFrom(*this);
 	}
 }
@@ -1219,7 +1189,7 @@ void CBonusSystemNode::reduceBonusDurations(const CSelector &s)
 {
 	BonusList bl;
 	exportedBonuses.getBonuses(bl, s, Selector::all);
-	for(auto b : bl)
+	for(const auto& b : bl)
 	{
 		b->turnsRemain--;
 		if(b->turnsRemain <= 0)
@@ -1267,7 +1237,7 @@ void CBonusSystemNode::removeBonuses(const CSelector & selector)
 {
 	BonusList toRemove;
 	exportedBonuses.getBonuses(toRemove, selector, Selector::all);
-	for(auto bonus : toRemove)
+	for(const auto& bonus : toRemove)
 		removeBonus(bonus);
 }
 
@@ -1284,7 +1254,7 @@ bool CBonusSystemNode::actsAsBonusSourceOnly() const
 	}
 }
 
-void CBonusSystemNode::propagateBonus(std::shared_ptr<Bonus> b, const CBonusSystemNode & source)
+void CBonusSystemNode::propagateBonus(const std::shared_ptr<Bonus>& b, const CBonusSystemNode & source)
 {
 	if(b->propagator->shouldBeAttached(this))
 	{
@@ -1299,7 +1269,7 @@ void CBonusSystemNode::propagateBonus(std::shared_ptr<Bonus> b, const CBonusSyst
 		child->propagateBonus(b, source);
 }
 
-void CBonusSystemNode::unpropagateBonus(std::shared_ptr<Bonus> b)
+void CBonusSystemNode::unpropagateBonus(const std::shared_ptr<Bonus>& b)
 {
 	if(b->propagator->shouldBeAttached(this))
 	{
@@ -1330,7 +1300,7 @@ void CBonusSystemNode::childDetached(CBonusSystemNode & child)
 
 void CBonusSystemNode::detachFromAll()
 {
-	while(parents.size())
+	while(!parents.empty())
 		detachFrom(*parents.front());
 }
 
@@ -1341,7 +1311,7 @@ bool CBonusSystemNode::isIndependentNode() const
 
 std::string CBonusSystemNode::nodeName() const
 {
-	return description.size()
+	return !description.empty()
 		? description
 		: std::string("Bonus system node of type ") + typeid(*this).name();
 }
@@ -1402,7 +1372,7 @@ void CBonusSystemNode::getRedChildren(TNodes &out)
 
 void CBonusSystemNode::newRedDescendant(CBonusSystemNode & descendant)
 {
-	for(auto b : exportedBonuses)
+	for(const auto& b : exportedBonuses)
 	{
 		if(b->propagator)
 			descendant.propagateBonus(b, *this);
@@ -1410,9 +1380,9 @@ void CBonusSystemNode::newRedDescendant(CBonusSystemNode & descendant)
 	TNodes redParents;
 	getRedAncestors(redParents); //get all red parents recursively
 
-	for(auto parent : redParents)
+	for(auto *parent : redParents)
 	{
-		for(auto b : parent->exportedBonuses)
+		for(const auto& b : parent->exportedBonuses)
 		{
 			if(b->propagator)
 				descendant.propagateBonus(b, *this);
@@ -1422,16 +1392,16 @@ void CBonusSystemNode::newRedDescendant(CBonusSystemNode & descendant)
 
 void CBonusSystemNode::removedRedDescendant(CBonusSystemNode & descendant)
 {
-	for(auto b : exportedBonuses)
+	for(const auto& b : exportedBonuses)
 		if(b->propagator)
 			descendant.unpropagateBonus(b);
 
 	TNodes redParents;
 	getRedAncestors(redParents); //get all red parents recursively
 
-	for(auto parent : redParents)
+	for(auto *parent : redParents)
 	{
-		for(auto b : parent->exportedBonuses)
+		for(const auto& b : parent->exportedBonuses)
 			if(b->propagator)
 				descendant.unpropagateBonus(b);
 	}
@@ -1455,7 +1425,7 @@ void CBonusSystemNode::getRedDescendants(TNodes &out)
 		c->getRedChildren(out);
 }
 
-void CBonusSystemNode::exportBonus(std::shared_ptr<Bonus> b)
+void CBonusSystemNode::exportBonus(const std::shared_ptr<Bonus>& b)
 {
 	if(b->propagator)
 		propagateBonus(b, *this);
@@ -1467,7 +1437,7 @@ void CBonusSystemNode::exportBonus(std::shared_ptr<Bonus> b)
 
 void CBonusSystemNode::exportBonuses()
 {
-	for(auto b : exportedBonuses)
+	for(const auto& b : exportedBonuses)
 		exportBonus(b);
 }
 
@@ -1520,8 +1490,8 @@ void CBonusSystemNode::limitBonuses(const BonusList &allBonuses, BonusList &out)
 {
 	assert(&allBonuses != &out); //todo should it work in-place?
 
-	BonusList undecided = allBonuses,
-		&accepted = out;
+	BonusList undecided = allBonuses;
+	BonusList &accepted = out;
 
 	while(true)
 	{
@@ -1680,7 +1650,7 @@ JsonNode durationToJson(ui16 duration)
 	else
 	{
 		JsonNode node(JsonNode::JsonType::DATA_VECTOR);
-		for(std::string dur : durationNames)
+		for(const std::string& dur : durationNames)
 			node.Vector().push_back(JsonUtils::stringNode(dur));
 		return node;
 	}
@@ -1698,7 +1668,7 @@ JsonNode Bonus::toJsonNode() const
 	if(duration != 0)
 	{
 		JsonNode durationVec(JsonNode::JsonType::DATA_VECTOR);
-		for(auto & kv : bonusDurationMap)
+		for(const auto & kv : bonusDurationMap)
 		{
 			if(duration & kv.second)
 				durationVec.Vector().push_back(JsonUtils::stringNode(kv.first));
@@ -1749,7 +1719,7 @@ std::string Bonus::nameForBonus() const
 	case Bonus::SPECIAL_PECULIAR_ENCHANT:
 	case Bonus::SPECIAL_ADD_VALUE_ENCHANT:
 	case Bonus::SPECIAL_FIXED_VALUE_ENCHANT:
-		return (*VLC->spellh)[SpellID::ESpellID(subtype)]->identifier;
+		return (*VLC->spellh)[static_cast<SpellID::ESpellID>(subtype)]->identifier;
 	case Bonus::SPECIAL_UPGRADE:
 		return CreatureID::encode(subtype) + "2" + CreatureID::encode(additionalInfo[0]);
 	case Bonus::GENERATE_RESOURCE:
@@ -1762,38 +1732,19 @@ std::string Bonus::nameForBonus() const
 }
 
 Bonus::Bonus(Bonus::BonusDuration Duration, BonusType Type, BonusSource Src, si32 Val, ui32 ID, std::string Desc, si32 Subtype)
-	: duration((ui16)Duration), type(Type), subtype(Subtype), source(Src), val(Val), sid(ID), description(Desc)
+	: duration(static_cast<ui16>(Duration)),  type(Type), subtype(Subtype), source(Src), val(Val), sid(ID),  description(std::move(Desc))
 {
-	turnsRemain = 0;
-	valType = ADDITIVE_VALUE;
-	effectRange = NO_LIMIT;
 	boost::algorithm::trim(description);
 }
 
 Bonus::Bonus(Bonus::BonusDuration Duration, BonusType Type, BonusSource Src, si32 Val, ui32 ID, si32 Subtype, ValueType ValType)
-	: duration((ui16)Duration), type(Type), subtype(Subtype), source(Src), val(Val), sid(ID), valType(ValType)
+	: duration(static_cast<ui16>(Duration)), type(Type), subtype(Subtype), source(Src), val(Val), sid(ID), valType(ValType)
 {
-	turnsRemain = 0;
-	effectRange = NO_LIMIT;
-}
-
-Bonus::Bonus()
-{
-	duration = PERMANENT;
-	turnsRemain = 0;
-	type = NONE;
-	subtype = -1;
-
-	valType = ADDITIVE_VALUE;
-	effectRange = NO_LIMIT;
-	val = 0;
-	source = OTHER;
-	sid = 0;
 }
 
 std::shared_ptr<Bonus> Bonus::addPropagator(TPropagatorPtr Propagator)
 {
-	propagator = Propagator;
+	propagator = std::move(Propagator);
 	return this->shared_from_this();
 }
 
@@ -1837,7 +1788,7 @@ namespace Selector
 		return type()(Type).And(subtype()(Subtype));
 	}
 
-	CSelector DLL_LINKAGE typeSubtypeInfo(Bonus::BonusType type, TBonusSubtype subtype, CAddInfo info)
+	CSelector DLL_LINKAGE typeSubtypeInfo(Bonus::BonusType type, TBonusSubtype subtype, const CAddInfo& info)
 	{
 		return CSelectFieldEqual<Bonus::BonusType>(&Bonus::type)(type)
 			.And(CSelectFieldEqual<TBonusSubtype>(&Bonus::subtype)(subtype))
@@ -1884,9 +1835,9 @@ const CCreature * retrieveCreature(const CBonusSystemNode *node)
 	switch(node->getNodeType())
 	{
 	case CBonusSystemNode::CREATURE:
-		return (static_cast<const CCreature *>(node));
+		return (dynamic_cast<const CCreature *>(node));
 	case CBonusSystemNode::STACK_BATTLE:
-		return (static_cast<const CStack*>(node))->type;
+		return (dynamic_cast<const CStack*>(node))->type;
 	default:
 		const CStackInstance * csi = retrieveStackInstance(node);
 		if(csi)
@@ -1899,7 +1850,7 @@ DLL_LINKAGE std::ostream & operator<<(std::ostream &out, const BonusList &bonusL
 {
 	for (ui32 i = 0; i < bonusList.size(); i++)
 	{
-		auto b = bonusList[i];
+		const auto& b = bonusList[i];
 		out << "Bonus " << i << "\n" << *b << std::endl;
 	}
 	return out;
@@ -1907,9 +1858,9 @@ DLL_LINKAGE std::ostream & operator<<(std::ostream &out, const BonusList &bonusL
 
 DLL_LINKAGE std::ostream & operator<<(std::ostream &out, const Bonus &bonus)
 {
-	for(auto i = bonusNameMap.cbegin(); i != bonusNameMap.cend(); i++)
-		if(i->second == bonus.type)
-			out << "\tType: " << i->first << " \t";
+	for(const auto & i : bonusNameMap)
+		if(i.second == bonus.type)
+			out << "\tType: " << i.first << " \t";
 
 #define printField(field) out << "\t" #field ": " << (int)bonus.field << "\n"
 	printField(val);
@@ -1934,7 +1885,7 @@ DLL_LINKAGE std::ostream & operator<<(std::ostream &out, const Bonus &bonus)
 	return out;
 }
 
-std::shared_ptr<Bonus> Bonus::addLimiter(TLimiterPtr Limiter)
+std::shared_ptr<Bonus> Bonus::addLimiter(const TLimiterPtr& Limiter)
 {
 	if (limiter)
 	{
@@ -1957,9 +1908,6 @@ std::shared_ptr<Bonus> Bonus::addLimiter(TLimiterPtr Limiter)
 	return this->shared_from_this();
 }
 
-ILimiter::~ILimiter()
-{
-}
 
 int ILimiter::limit(const BonusLimitationContext &context) const /*return true to drop the bonus */
 {
@@ -1992,13 +1940,8 @@ CCreatureTypeLimiter::CCreatureTypeLimiter(const CCreature & creature_, bool Inc
 {
 }
 
-CCreatureTypeLimiter::CCreatureTypeLimiter()
-{
-	creature = nullptr;
-	includeUpgrades = false;
-}
 
-void CCreatureTypeLimiter::setCreature (CreatureID id)
+void CCreatureTypeLimiter::setCreature (const CreatureID& id)
 {
 	creature = VLC->creh->objects[id];
 }
@@ -2077,11 +2020,6 @@ JsonNode HasAnotherBonusLimiter::toJsonNode() const
 		root["parameters"].Vector().push_back(JsonUtils::intNode(subtype));
 
 	return root;
-}
-
-IPropagator::~IPropagator()
-{
-
 }
 
 bool IPropagator::shouldBeAttached(CBonusSystemNode *dest)
@@ -2168,7 +2106,7 @@ CreatureFactionLimiter::CreatureFactionLimiter(TFaction creatureFaction)
 }
 
 CreatureFactionLimiter::CreatureFactionLimiter()
-	: faction((TFaction)-1)
+	: faction(static_cast<TFaction>(-1))
 {
 }
 
@@ -2280,7 +2218,7 @@ StackOwnerLimiter::StackOwnerLimiter()
 {
 }
 
-StackOwnerLimiter::StackOwnerLimiter(PlayerColor Owner)
+StackOwnerLimiter::StackOwnerLimiter(const PlayerColor& Owner)
 	: owner(Owner)
 {
 }
@@ -2290,7 +2228,7 @@ OppositeSideLimiter::OppositeSideLimiter()
 {
 }
 
-OppositeSideLimiter::OppositeSideLimiter(PlayerColor Owner)
+OppositeSideLimiter::OppositeSideLimiter(const PlayerColor& Owner)
 	: owner(Owner)
 {
 }
@@ -2304,7 +2242,7 @@ int OppositeSideLimiter::limit(const BonusLimitationContext & context) const
 
 // Aggregate/Boolean Limiters
 
-void AggregateLimiter::add(TLimiterPtr limiter)
+void AggregateLimiter::add(const TLimiterPtr& limiter)
 {
 	if(limiter)
 		limiters.push_back(limiter);
@@ -2314,7 +2252,7 @@ JsonNode AggregateLimiter::toJsonNode() const
 {
 	JsonNode result(JsonNode::JsonType::DATA_VECTOR);
 	result.Vector().push_back(JsonUtils::stringNode(getAggregator()));
-	for(auto l : limiters)
+	for(const auto& l : limiters)
 		result.Vector().push_back(l->toJsonNode());
 	return result;
 }
@@ -2329,7 +2267,7 @@ int AllOfLimiter::limit(const BonusLimitationContext & context) const
 {
 	bool wasntSure = false;
 
-	for(auto limiter : limiters)
+	for(const auto& limiter : limiters)
 	{
 		auto result = limiter->limit(context);
 		if(result == ILimiter::DISCARD)
@@ -2351,7 +2289,7 @@ int AnyOfLimiter::limit(const BonusLimitationContext & context) const
 {
 	bool wasntSure = false;
 
-	for(auto limiter : limiters)
+	for(const auto& limiter : limiters)
 	{
 		auto result = limiter->limit(context);
 		if(result == ILimiter::ACCEPT)
@@ -2373,7 +2311,7 @@ int NoneOfLimiter::limit(const BonusLimitationContext & context) const
 {
 	bool wasntSure = false;
 
-	for(auto limiter : limiters)
+	for(const auto& limiter : limiters)
 	{
 		auto result = limiter->limit(context);
 		if(result == ILimiter::ACCEPT)
@@ -2389,7 +2327,7 @@ int NoneOfLimiter::limit(const BonusLimitationContext & context) const
 
 std::shared_ptr<Bonus> Bonus::addUpdater(TUpdaterPtr Updater)
 {
-	updater = Updater;
+	updater = std::move(Updater);
 	return this->shared_from_this();
 }
 
@@ -2427,9 +2365,6 @@ void Bonus::updateOppositeBonuses()
 	propagationUpdater = std::make_shared<OwnerUpdater>();
 }
 
-IUpdater::~IUpdater()
-{
-}
 
 std::shared_ptr<Bonus> IUpdater::createUpdatedBonus(const std::shared_ptr<Bonus> & b, const CBonusSystemNode & context) const
 {
@@ -2446,9 +2381,6 @@ JsonNode IUpdater::toJsonNode() const
 	return JsonNode(JsonNode::JsonType::DATA_NULL);
 }
 
-GrowsWithLevelUpdater::GrowsWithLevelUpdater() : valPer20(0), stepSize(1)
-{
-}
 
 GrowsWithLevelUpdater::GrowsWithLevelUpdater(int valPer20, int stepSize) : valPer20(valPer20), stepSize(stepSize)
 {
@@ -2458,7 +2390,7 @@ std::shared_ptr<Bonus> GrowsWithLevelUpdater::createUpdatedBonus(const std::shar
 {
 	if(context.getNodeType() == CBonusSystemNode::HERO)
 	{
-		int level = static_cast<const CGHeroInstance &>(context).level;
+		int level = dynamic_cast<const CGHeroInstance &>(context).level;
 		int steps = stepSize ? level / stepSize : level;
 		//rounding follows format for HMM3 creature specialty bonus
 		int newVal = (valPer20 * steps + 19) / 20;
@@ -2487,15 +2419,12 @@ JsonNode GrowsWithLevelUpdater::toJsonNode() const
 	return root;
 }
 
-TimesHeroLevelUpdater::TimesHeroLevelUpdater()
-{
-}
 
 std::shared_ptr<Bonus> TimesHeroLevelUpdater::createUpdatedBonus(const std::shared_ptr<Bonus> & b, const CBonusSystemNode & context) const
 {
 	if(context.getNodeType() == CBonusSystemNode::HERO)
 	{
-		int level = static_cast<const CGHeroInstance &>(context).level;
+		int level = dynamic_cast<const CGHeroInstance &>(context).level;
 		std::shared_ptr<Bonus> newBonus = std::make_shared<Bonus>(*b);
 		newBonus->val *= level;
 		return newBonus;
@@ -2513,22 +2442,19 @@ JsonNode TimesHeroLevelUpdater::toJsonNode() const
 	return JsonUtils::stringNode("TIMES_HERO_LEVEL");
 }
 
-TimesStackLevelUpdater::TimesStackLevelUpdater()
-{
-}
 
 std::shared_ptr<Bonus> TimesStackLevelUpdater::createUpdatedBonus(const std::shared_ptr<Bonus> & b, const CBonusSystemNode & context) const
 {
 	if(context.getNodeType() == CBonusSystemNode::STACK_INSTANCE)
 	{
-		int level = static_cast<const CStackInstance &>(context).getLevel();
+		int level = dynamic_cast<const CStackInstance &>(context).getLevel();
 		std::shared_ptr<Bonus> newBonus = std::make_shared<Bonus>(*b);
 		newBonus->val *= level;
 		return newBonus;
 	}
 	else if(context.getNodeType() == CBonusSystemNode::STACK_BATTLE)
 	{
-		const CStack & stack = static_cast<const CStack &>(context);
+		const auto & stack = dynamic_cast<const CStack &>(context);
 		//only update if stack doesn't have an instance (summons, war machines)
 		//otherwise we'd end up multiplying twice
 		if(stack.base == nullptr)
@@ -2552,9 +2478,6 @@ JsonNode TimesStackLevelUpdater::toJsonNode() const
 	return JsonUtils::stringNode("TIMES_STACK_LEVEL");
 }
 
-OwnerUpdater::OwnerUpdater()
-{
-}
 
 std::string OwnerUpdater::toString() const
 {
@@ -2574,7 +2497,7 @@ std::shared_ptr<Bonus> OwnerUpdater::createUpdatedBonus(const std::shared_ptr<Bo
 		owner = PlayerColor::NEUTRAL;
 
 	std::shared_ptr<Bonus> updated = std::make_shared<Bonus>(
-		(Bonus::BonusDuration)b->duration, b->type, b->source, b->val, b->sid, b->subtype, b->valType);
+		static_cast<Bonus::BonusDuration>(b->duration), b->type, b->source, b->val, b->sid, b->subtype, b->valType);
 	updated->limiter = std::make_shared<OppositeSideLimiter>(owner);
 	return updated;
 }

@@ -40,22 +40,22 @@ class DLL_LINKAGE CCreature : public Creature, public CBonusSystemNode
 public:
 	CreatureID idNumber;
 
-	TFaction faction;
-	ui8 level; // 0 - unknown; 1-7 for "usual" creatures
+	TFaction faction = 0;
+	ui8 level = 0; // 0 - unknown; 1-7 for "usual" creatures
 
 	//stats that are not handled by bonus system
 	ui32 fightValue, AIValue, growth, hordeGrowth;
 	ui32 ammMin, ammMax; // initial size of stack of these creatures on adventure map (if not set in editor)
 
-	bool doubleWide;
-	bool special; // Creature is not available normally (war machines, commanders, several unused creatures, etc
+	bool doubleWide = false;
+	bool special = true; // Creature is not available normally (war machines, commanders, several unused creatures, etc
 
 	TResources cost; //cost[res_id] - amount of that resource required to buy creature from dwelling
 	std::set<CreatureID> upgrades; // IDs of creatures to which this creature can be upgraded
 
 	std::string animDefName; // creature animation used during battles
 	std::string advMapDef; //for new creatures only, image for adventure map
-	si32 iconIndex; // index of icon in files like twcrport
+	si32 iconIndex = -1; // index of icon in files like twcrport
 
 	/// names of files with appropriate icons. Used only during loading
 	std::string smallIconName;
@@ -248,25 +248,25 @@ private:
 	CBonusSystemNode allCreatures;
 	CBonusSystemNode creaturesOfLevel[GameConstants::CREATURES_PER_TOWN + 1];//index 0 is used for creatures of unknown tier or outside <1-7> range
 
-	void loadJsonAnimation(CCreature * creature, const JsonNode & graphics);
-	void loadStackExperience(CCreature * creature, const JsonNode &input);
-	void loadCreatureJson(CCreature * creature, const JsonNode & config);
+	static void loadJsonAnimation(CCreature * creature, const JsonNode & graphics);
+	static void loadStackExperience(CCreature * creature, const JsonNode &input);
+	static void loadCreatureJson(CCreature * creature, const JsonNode & config);
 
 	/// adding abilities from ZCRTRAIT.TXT
-	void loadBonuses(JsonNode & creature, std::string bonuses);
+	static void loadBonuses(JsonNode & creature, std::string bonuses);
 	/// load all creatures from H3 files
 	void load();
 	void loadCommanders();
 	/// load creature from json structure
 	void load(std::string creatureID, const JsonNode & node);
 	/// read cranim.txt file from H3
-	void loadAnimationInfo(std::vector<JsonNode> & h3Data);
+	static void loadAnimationInfo(std::vector<JsonNode> & h3Data);
 	/// read one line from cranim.txt
-	void loadUnitAnimInfo(JsonNode & unit, CLegacyConfigParser &parser);
+	static void loadUnitAnimInfo(JsonNode & unit, CLegacyConfigParser &parser);
 	/// parse crexpbon.txt file from H3
-	void loadStackExp(Bonus & b, BonusList & bl, CLegacyConfigParser &parser);
+	static void loadStackExp(Bonus & b, BonusList & bl, CLegacyConfigParser &parser);
 	/// help function for parsing CREXPBON.txt
-	int stringToNumber(std::string & s);
+	static int stringToNumber(std::string & s);
 
 protected:
 	const std::vector<std::string> & getTypeNames() const override;

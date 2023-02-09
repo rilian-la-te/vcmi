@@ -248,19 +248,14 @@ si32 CCreature::maxAmount(const std::vector<si32> &res) const //how many creatur
 	int resAmnt = static_cast<int>(std::min(res.size(),cost.size()));
 	for(int i=0;i<resAmnt;i++)
 		if(cost[i])
-			ret = std::min(ret,(int)(res[i]/cost[i]));
+			ret = std::min(ret,(res[i]/cost[i]));
 	return ret;
 }
 
 CCreature::CCreature()
 {
 	setNodeType(CBonusSystemNode::CREATURE);
-	faction = 0;
-	level = 0;
 	fightValue = AIValue = growth = hordeGrowth = ammMin = ammMax = 0;
-	doubleWide = false;
-	special = true;
-	iconIndex = -1;
 }
 
 void CCreature::addBonus(int val, Bonus::BonusType type, int subtype)
@@ -416,7 +411,7 @@ CCreatureHandler::CCreatureHandler()
 	creaturesOfLevel[0].setDescription("Creatures of unnormalized tier");
 
 	for(int i = 1; i < ARRAY_COUNT(creaturesOfLevel); i++)
-		creaturesOfLevel[i].setDescription("Creatures of tier " + boost::lexical_cast<std::string>(i));
+		creaturesOfLevel[i].setDescription("Creatures of tier " + std::to_string(i));
 	loadCommanders();
 }
 
@@ -445,10 +440,10 @@ void CCreatureHandler::loadCommanders()
 	int i = 0;
 	for (auto skill : config["skillLevels"].Vector())
 	{
-		skillLevels.push_back (std::vector<ui8>());
+		skillLevels.emplace_back();
 		for (auto skillLevel : skill["levels"].Vector())
 		{
-			skillLevels[i].push_back ((ui8)skillLevel.Float());
+			skillLevels[i].push_back (static_cast<ui8>(skillLevel.Float()));
 		}
 		++i;
 	}
@@ -468,7 +463,7 @@ void CCreatureHandler::loadBonuses(JsonNode & creature, std::string bonuses)
 	auto makeBonusNode = [&](std::string type) -> JsonNode
 	{
 		JsonNode ret;
-		ret["type"].String() = type;
+		ret["type"].String() = std::move(type);
 		return ret;
 	};
 
@@ -491,12 +486,12 @@ void CCreatureHandler::loadBonuses(JsonNode & creature, std::string bonuses)
 		{"HAS_EXTENDED_ATTACK",    makeBonusNode("TWO_HEX_ATTACK_BREATH")}
 	};
 
-	auto hasAbility = [&](const std::string name) -> bool
+	auto hasAbility = [&](const std::string& name) -> bool
 	{
 		return boost::algorithm::find_first(bonuses, name);
 	};
 
-	for(auto a : abilityMap)
+	for(const auto& a : abilityMap)
 	{
 		if(hasAbility(a.first))
 			creature["abilities"][a.first] = a.second;
@@ -528,7 +523,7 @@ std::vector<JsonNode> CCreatureHandler::loadLegacyData(size_t dataSize)
 	//RUS: Singular	Plural	Plural2 Wood ...
 	// Try to detect which version this is by header
 	// TODO: use 3rd name? Stand for "whose", e.g. pikemans'
-	size_t namesCount;
+	size_t namesCount = 0;
 	{
 		if ( parser.readString() != "Singular" || parser.readString() != "Plural" )
 			throw std::runtime_error("Incorrect format of CrTraits.txt");
@@ -596,7 +591,7 @@ CCreature * CCreatureHandler::loadFromJson(const std::string & scope, const Json
 	assert(identifier.find(':') == std::string::npos);
 	assert(!scope.empty());
 
-	auto cre = new CCreature();
+	auto *cre = new CCreature();
 
 	if(node["hasDoubleWeek"].Bool())
 	{
@@ -632,9 +627,9 @@ CCreature * CCreatureHandler::loadFromJson(const std::string & scope, const Json
 	loadJsonAnimation(cre, node["graphics"]);
 	loadCreatureJson(cre, node);
 
-	for(auto & extraName : node["extraNames"].Vector())
+	for(const auto & extraName : node["extraNames"].Vector())
 	{
-		for(auto type_name : getTypeNames())
+		for(const auto& type_name : getTypeNames())
 			registerObject(scope, type_name, extraName.String(), cre->getIndex());
 	}
 
@@ -670,6 +665,7 @@ std::vector<bool> CCreatureHandler::getDefaultAllowed() const
 {
 	std::vector<bool> ret;
 
+	ret.reserve(objects.size());
 	for(const CCreature * crea : objects)
 	{
 		ret.push_back(crea ? !crea->special : false);
@@ -696,7 +692,7 @@ void CCreatureHandler::loadCrExpBon()
 
 		parser.readString(); //ignore index
 		loadStackExp(b, bl, parser);
-		for(auto b : bl)
+		for(const auto& b : bl)
 			addBonusForAllCreatures(b); //health bonus is common for all
 		parser.endLine();
 
@@ -707,7 +703,7 @@ void CCreatureHandler::loadCrExpBon()
 				parser.readString(); //ignore index
 				bl.clear();
 				loadStackExp(b, bl, parser);
-				for(auto b : bl)
+				for(const auto& b : bl)
 					addBonusForTier(i, b);
 				parser.endLine();
 			}
@@ -717,7 +713,7 @@ void CCreatureHandler::loadCrExpBon()
 			parser.readString(); //ignore index
 			bl.clear();
 			loadStackExp(b, bl, parser);
-			for(auto b : bl)
+			for(const auto& b : bl)
 			{
 				addBonusForTier(7, b);
 				creaturesOfLevel[0].addNewBonus(b); //bonuses from level 7 are given to high-level creatures
@@ -731,7 +727,7 @@ void CCreatureHandler::loadCrExpBon()
 			b.sid = sid;
 			bl.clear();
 			loadStackExp(b, bl, parser);
-			for(auto b : bl)
+			for(const auto& b : bl)
 			{
 				objects[sid]->addNewBonus(b); //add directly to CCreature Node
 			}
@@ -773,7 +769,7 @@ void CCreatureHandler::loadCrExpBon()
 			expBonParser.readString(); //already calculated
 
 			maxExpPerBattle[i] = static_cast<ui32>(expBonParser.readNumber());
-			expRanks[i].push_back(expRanks[i].back() + (ui32)expBonParser.readNumber());
+			expRanks[i].push_back(expRanks[i].back() + static_cast<ui32>(expBonParser.readNumber()));
 
 			expBonParser.endLine();
 		}
@@ -876,7 +872,7 @@ void CCreatureHandler::loadCreatureJson(CCreature * creature, const JsonNode & c
 	//FIXME: MOD COMPATIBILITY
 	if (config["abilities"].getType() == JsonNode::JsonType::DATA_STRUCT)
 	{
-		for(auto &ability : config["abilities"].Struct())
+		for(const auto &ability : config["abilities"].Struct())
 		{
 			if (!ability.second.isNull())
 			{
@@ -968,7 +964,7 @@ void CCreatureHandler::loadStackExperience(CCreature * creature, const JsonNode 
 		{
 			for (const JsonNode &val : values)
 			{
-				if (val.Bool() == true)
+				if (val.Bool())
 				{
 					bonus->limiter = std::make_shared<RankRangeLimiter>(RankRangeLimiter(lowerLimit));
 					creature->addNewBonus (std::make_shared<Bonus>(*bonus)); //bonuses must be unique objects
@@ -984,7 +980,7 @@ void CCreatureHandler::loadStackExperience(CCreature * creature, const JsonNode 
 			{
 				if (val.Float() != lastVal)
 				{
-					bonus->val = (int)val.Float() - lastVal;
+					bonus->val = static_cast<int>(val.Float()) - lastVal;
 					bonus->limiter.reset (new RankRangeLimiter(lowerLimit));
 					creature->addNewBonus (std::make_shared<Bonus>(*bonus));
 				}
@@ -1258,7 +1254,9 @@ void CCreatureHandler::loadStackExp(Bonus & b, BonusList & bl, CLegacyConfigPars
 	}
 
 	//limiters, range
-	si32 lastVal, curVal, lastLev = 0;
+	si32 lastVal;
+	si32 curVal;
+	si32 lastLev = 0;
 
 	if (enable) //0 and 2 means non-active, 1 - active
 	{
@@ -1333,12 +1331,12 @@ CreatureID CCreatureHandler::pickRandomMonster(CRandomGenerator & rand, int tier
 		for(const CBonusSystemNode *b : creaturesOfLevel[tier].getChildrenNodes())
 		{
 			assert(b->getNodeType() == CBonusSystemNode::CREATURE);
-			const CCreature * crea = dynamic_cast<const CCreature*>(b);
+			const auto * crea = dynamic_cast<const CCreature*>(b);
 			if(crea && !crea->special)
 				allowed.push_back(crea->idNumber);
 		}
 
-		if(!allowed.size())
+		if(allowed.empty())
 		{
 			logGlobal->warn("Cannot pick a random creature of tier %d!", tier);
 			return CreatureID::NONE;

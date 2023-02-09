@@ -53,10 +53,10 @@ class DLL_LINKAGE LibClasses : public Services
 	void callWhenDeserializing(); //should be called only by serialize !!!
 	void makeNull(); //sets all handler pointers to null
 	std::shared_ptr<CContentHandler> getContent() const;
-	void setContent(std::shared_ptr<CContentHandler> content);
+	void setContent(std::shared_ptr<CContentHandler> content) const;
 
 public:
-	bool IS_AI_ENABLED; //unused?
+	bool IS_AI_ENABLED = false; //unused?
 
 	const ArtifactService * artifacts() const override;
 	const CreatureService * creatures() const override;

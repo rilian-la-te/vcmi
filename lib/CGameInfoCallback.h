@@ -132,7 +132,7 @@ class DLL_LINKAGE CGameInfoCallback : public virtual CCallbackBase, public IGame
 protected:
 	CGameState * gs;//todo: replace with protected const getter, only actual Server and Client objects should hold game state
 
-	CGameInfoCallback();
+	CGameInfoCallback() = default;
 	CGameInfoCallback(CGameState *GS, boost::optional<PlayerColor> Player);
 	bool hasAccess(boost::optional<PlayerColor> playerId) const;
 

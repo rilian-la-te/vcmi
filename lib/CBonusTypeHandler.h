@@ -65,7 +65,7 @@ public:
 private:
 	void load();
 	void load(const JsonNode & config);
-	void loadItem(const JsonNode & source, CBonusType & dest, const std::string & name);
+	static void loadItem(const JsonNode & source, CBonusType & dest, const std::string & name);
 
 	std::vector<CBonusType> bonusTypes; //index = BonusTypeID
 };

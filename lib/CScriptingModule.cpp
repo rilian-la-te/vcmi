@@ -22,16 +22,6 @@ ContextBase::ContextBase(vstd::CLoggerBase * logger_)
 {
 
 }
-
-ContextBase::~ContextBase() = default;
-
-
-Module::Module()
-{
-}
-
-Module::~Module() = default;
-
 }
 
 VCMI_LIB_NAMESPACE_END

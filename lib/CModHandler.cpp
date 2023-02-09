@@ -41,9 +41,6 @@ CIdentifierStorage::CIdentifierStorage():
 {
 }
 
-CIdentifierStorage::~CIdentifierStorage()
-{
-}
 
 void CIdentifierStorage::checkIdentifier(std::string & ID)
 {
@@ -67,13 +64,13 @@ void CIdentifierStorage::checkIdentifier(std::string & ID)
 
 CIdentifierStorage::ObjectCallback::ObjectCallback(
 		std::string localScope, std::string remoteScope, std::string type,
-		std::string name, const std::function<void(si32)> & callback,
+		std::string name, std::function<void(si32)>  callback,
 		bool optional):
-	localScope(localScope),
-	remoteScope(remoteScope),
-	type(type),
-	name(name),
-	callback(callback),
+	localScope(std::move(localScope)),
+	remoteScope(std::move(remoteScope)),
+	type(std::move(type)),
+	name(std::move(name)),
+	callback(std::move(callback)),
 	optional(optional)
 {}
 
@@ -90,26 +87,26 @@ void CIdentifierStorage::requestIdentifier(ObjectCallback callback)
 		resolveIdentifier(callback);
 }
 
-void CIdentifierStorage::requestIdentifier(std::string scope, std::string type, std::string name, const std::function<void(si32)> & callback)
+void CIdentifierStorage::requestIdentifier(std::string scope, std::string type, const std::string& name, const std::function<void(si32)> & callback)
 {
 	auto pair = vstd::splitStringToPair(name, ':'); // remoteScope:name
 
-	requestIdentifier(ObjectCallback(scope, pair.first, type, pair.second, callback, false));
+	requestIdentifier(ObjectCallback(std::move(scope), pair.first, std::move(type), pair.second, callback, false));
 }
 
-void CIdentifierStorage::requestIdentifier(std::string scope, std::string fullName, const std::function<void(si32)>& callback)
+void CIdentifierStorage::requestIdentifier(std::string scope, const std::string& fullName, const std::function<void(si32)>& callback)
 {
 	auto scopeAndFullName = vstd::splitStringToPair(fullName, ':');
 	auto typeAndName = vstd::splitStringToPair(scopeAndFullName.second, '.');
 
-	requestIdentifier(ObjectCallback(scope, scopeAndFullName.first, typeAndName.first, typeAndName.second, callback, false));
+	requestIdentifier(ObjectCallback(std::move(scope), scopeAndFullName.first, typeAndName.first, typeAndName.second, callback, false));
 }
 
 void CIdentifierStorage::requestIdentifier(std::string type, const JsonNode & name, const std::function<void(si32)> & callback)
 {
 	auto pair = vstd::splitStringToPair(name.String(), ':'); // remoteScope:name
 
-	requestIdentifier(ObjectCallback(name.meta, pair.first, type, pair.second, callback, false));
+	requestIdentifier(ObjectCallback(name.meta, pair.first, std::move(type), pair.second, callback, false));
 }
 
 void CIdentifierStorage::requestIdentifier(const JsonNode & name, const std::function<void(si32)> & callback)
@@ -120,21 +117,21 @@ void CIdentifierStorage::requestIdentifier(const JsonNode & name, const std::fun
 	requestIdentifier(ObjectCallback(name.meta, pair.first, pair2.first, pair2.second, callback, false));
 }
 
-void CIdentifierStorage::tryRequestIdentifier(std::string scope, std::string type, std::string name, const std::function<void(si32)> & callback)
+void CIdentifierStorage::tryRequestIdentifier(std::string scope, std::string type, const std::string& name, const std::function<void(si32)> & callback)
 {
 	auto pair = vstd::splitStringToPair(name, ':'); // remoteScope:name
 
-	requestIdentifier(ObjectCallback(scope, pair.first, type, pair.second, callback, true));
+	requestIdentifier(ObjectCallback(std::move(scope), pair.first, std::move(type), pair.second, callback, true));
 }
 
 void CIdentifierStorage::tryRequestIdentifier(std::string type, const JsonNode & name, const std::function<void(si32)> & callback)
 {
 	auto pair = vstd::splitStringToPair(name.String(), ':'); // remoteScope:name
 
-	requestIdentifier(ObjectCallback(name.meta, pair.first, type, pair.second, callback, true));
+	requestIdentifier(ObjectCallback(name.meta, pair.first, std::move(type), pair.second, callback, true));
 }
 
-boost::optional<si32> CIdentifierStorage::getIdentifier(std::string scope, std::string type, std::string name, bool silent)
+boost::optional<si32> CIdentifierStorage::getIdentifier(const std::string& scope, const std::string& type, const std::string& name, bool silent)
 {
 	auto pair = vstd::splitStringToPair(name, ':'); // remoteScope:name
 	auto idList = getPossibleIdentifiers(ObjectCallback(scope, pair.first, type, pair.second, std::function<void(si32)>(), silent));
@@ -147,7 +144,7 @@ boost::optional<si32> CIdentifierStorage::getIdentifier(std::string scope, std::
 	return boost::optional<si32>();
 }
 
-boost::optional<si32> CIdentifierStorage::getIdentifier(std::string type, const JsonNode & name, bool silent)
+boost::optional<si32> CIdentifierStorage::getIdentifier(const std::string& type, const JsonNode & name, bool silent)
 {
 	auto pair = vstd::splitStringToPair(name.String(), ':'); // remoteScope:name
 	auto idList = getPossibleIdentifiers(ObjectCallback(name.meta, pair.first, type, pair.second, std::function<void(si32)>(), silent));
@@ -174,7 +171,7 @@ boost::optional<si32> CIdentifierStorage::getIdentifier(const JsonNode & name, b
 	return boost::optional<si32>();
 }
 
-boost::optional<si32> CIdentifierStorage::getIdentifier(std::string scope, std::string fullName, bool silent)
+boost::optional<si32> CIdentifierStorage::getIdentifier(const std::string& scope, const std::string& fullName, bool silent)
 {
 	auto pair  = vstd::splitStringToPair(fullName, ':'); // remoteScope:<type.name>
 	auto pair2 = vstd::splitStringToPair(pair.second,   '.'); // type.name
@@ -188,7 +185,7 @@ boost::optional<si32> CIdentifierStorage::getIdentifier(std::string scope, std::
 	return boost::optional<si32>();
 }
 
-void CIdentifierStorage::registerObject(std::string scope, std::string type, std::string name, si32 identifier)
+void CIdentifierStorage::registerObject(const std::string& scope, const std::string& type, const std::string& name, si32 identifier)
 {
 	ObjectData data;
 	data.scope = scope;
@@ -299,14 +296,14 @@ bool CIdentifierStorage::resolveIdentifier(const ObjectCallback & request)
 	}
 
 	// error found. Try to generate some debug info
-	if (identifiers.size() == 0)
+	if (identifiers.empty())
 		logMod->error("Unknown identifier!");
 	else
 		logMod->error("Ambiguous identifier request!");
 
 	 logMod->error("Request for %s.%s from mod %s", request.type, request.name, request.localScope);
 
-	for (auto id : identifiers)
+	for (const auto& id : identifiers)
 	{
 		logMod->error("\tID is available in mod %s", id.scope);
 	}
@@ -330,7 +327,7 @@ void CIdentifierStorage::finalize()
 
 	if (errorsFound)
 	{
-		for(auto object : registeredObjects)
+		for(const auto& object : registeredObjects)
 		{
 			logMod->trace("%s : %s -> %d", object.second.scope, object.first, object.second.id);
 		}
@@ -340,10 +337,10 @@ void CIdentifierStorage::finalize()
 	state = FINISHED;
 }
 
-ContentTypeHandler::ContentTypeHandler(IHandlerBase * handler, std::string objectName):
+ContentTypeHandler::ContentTypeHandler(IHandlerBase * handler, const std::string& objectName):
 	handler(handler),
 	objectName(objectName),
-	originalData(handler->loadLegacyData((size_t)VLC->modh->settings.data["textData"][objectName].Float()))
+	originalData(handler->loadLegacyData(static_cast<size_t>(VLC->modh->settings.data["textData"][objectName].Float())))
 {
 	for(auto & node : originalData)
 	{
@@ -351,9 +348,9 @@ ContentTypeHandler::ContentTypeHandler(IHandlerBase * handler, std::string objec
 	}
 }
 
-bool ContentTypeHandler::preloadModData(std::string modName, std::vector<std::string> fileList, bool validate)
+bool ContentTypeHandler::preloadModData(const std::string& modName, const std::vector<std::string>& fileList, bool validate)
 {
-	bool result;
+	bool result = false;
 	JsonNode data = JsonUtils::assembleFromFiles(fileList, result);
 	data.setMeta(modName);
 
@@ -386,7 +383,7 @@ bool ContentTypeHandler::preloadModData(std::string modName, std::vector<std::st
 	return result;
 }
 
-bool ContentTypeHandler::loadMod(std::string modName, bool validate)
+bool ContentTypeHandler::loadMod(const std::string& modName, bool validate)
 {
 	ModInfo & modInfo = modData[modName];
 	bool result = true;
@@ -440,18 +437,14 @@ bool ContentTypeHandler::loadMod(std::string modName, bool validate)
 }
 
 
-void ContentTypeHandler::loadCustom()
+void ContentTypeHandler::loadCustom() const
 {
 	handler->loadCustom();
 }
 
-void ContentTypeHandler::afterLoadFinalization()
+void ContentTypeHandler::afterLoadFinalization() const
 {
 	handler->afterLoadFinalization();
-}
-
-CContentHandler::CContentHandler()
-{
 }
 
 void CContentHandler::init()
@@ -464,7 +457,7 @@ void CContentHandler::init()
 	handlers.insert(std::make_pair("heroes", ContentTypeHandler(VLC->heroh, "hero")));
 	handlers.insert(std::make_pair("spells", ContentTypeHandler(VLC->spellh, "spell")));
 	handlers.insert(std::make_pair("skills", ContentTypeHandler(VLC->skillh, "skill")));
-	handlers.insert(std::make_pair("templates", ContentTypeHandler((IHandlerBase *)VLC->tplh, "template")));
+	handlers.insert(std::make_pair("templates", ContentTypeHandler(reinterpret_cast<IHandlerBase *>(VLC->tplh), "template")));
 #if SCRIPTING_ENABLED
 	handlers.insert(std::make_pair("scripts", ContentTypeHandler(VLC->scriptHandler, "script")));
 #endif
@@ -476,7 +469,7 @@ void CContentHandler::init()
 	//TODO: any other types of moddables?
 }
 
-bool CContentHandler::preloadModData(std::string modName, JsonNode modConfig, bool validate)
+bool CContentHandler::preloadModData(const std::string& modName, JsonNode modConfig, bool validate)
 {
 	bool result = true;
 	for(auto & handler : handlers)
@@ -486,7 +479,7 @@ bool CContentHandler::preloadModData(std::string modName, JsonNode modConfig, bo
 	return result;
 }
 
-bool CContentHandler::loadMod(std::string modName, bool validate)
+bool CContentHandler::loadMod(const std::string& modName, bool validate)
 {
 	bool result = true;
 	for(auto & handler : handlers)
@@ -551,7 +544,7 @@ const ContentTypeHandler & CContentHandler::operator[](const std::string & name)
 	return handlers.at(name);
 }
 
-static JsonNode loadModSettings(std::string path)
+static JsonNode loadModSettings(const std::string& path)
 {
 	if (CResourceHandler::get("local")->existsResource(ResourceID(path)))
 	{
@@ -562,7 +555,7 @@ static JsonNode loadModSettings(std::string path)
 	return JsonNode();
 }
 
-JsonNode addMeta(JsonNode config, std::string meta)
+JsonNode addMeta(JsonNode config, const std::string& meta)
 {
 	config.setMeta(meta);
 	return config;
@@ -575,7 +568,9 @@ CModInfo::Version CModInfo::Version::GameVersion()
 
 CModInfo::Version CModInfo::Version::fromString(std::string from)
 {
-	int major = 0, minor = 0, patch = 0;
+	int major = 0;
+	int minor = 0;
+	int patch = 0;
 	try
 	{
 		auto pointPos = from.find('.');
@@ -621,7 +616,7 @@ CModInfo::CModInfo():
 
 }
 
-CModInfo::CModInfo(std::string identifier,const JsonNode & local, const JsonNode & config):
+CModInfo::CModInfo(const std::string& identifier,const JsonNode & local, const JsonNode & config):
 	identifier(identifier),
 	name(config["name"].String()),
 	description(config["description"].String()),
@@ -653,12 +648,12 @@ JsonNode CModInfo::saveLocalData() const
 	return conf;
 }
 
-std::string CModInfo::getModDir(std::string name)
+std::string CModInfo::getModDir(const std::string& name)
 {
 	return "MODS/" + boost::algorithm::replace_all_copy(name, ".", "/MODS/");
 }
 
-std::string CModInfo::getModFile(std::string name)
+std::string CModInfo::getModFile(const std::string& name)
 {
 	return getModDir(name) + "/mod.json";
 }
@@ -721,14 +716,10 @@ CModHandler::CModHandler() : content(std::make_shared<CContentHandler>())
 	}
 }
 
-CModHandler::~CModHandler()
-{
-}
-
-void CModHandler::loadConfigFromFile (std::string name)
+void CModHandler::loadConfigFromFile (const std::string& name)
 {
 	std::string paths;
-	for(auto& p : CResourceHandler::get()->getResourceNames(ResourceID("config/" + name)))
+	for(const auto& p : CResourceHandler::get()->getResourceNames(ResourceID("config/" + name)))
 	{
 		paths += p.string() + ", ";
 	}
@@ -779,7 +770,7 @@ void CModHandler::loadConfigFromFile (std::string name)
 }
 
 // currentList is passed by value to get current list of depending mods
-bool CModHandler::hasCircularDependency(TModID modID, std::set <TModID> currentList) const
+bool CModHandler::hasCircularDependency(const TModID& modID, std::set <TModID> currentList) const
 {
 	const CModInfo & mod = allMods.at(modID);
 
@@ -874,7 +865,7 @@ std::vector <TModID> CModHandler::validateAndSortDependencies(std::vector <TModI
 			}
 			it++;
 		}
-		if(resolvedOnCurrentTreeLevel.size())
+		if(!resolvedOnCurrentTreeLevel.empty())
 		{
 			resolvedModIDs.insert(resolvedOnCurrentTreeLevel.begin(), resolvedOnCurrentTreeLevel.end());
 					continue;
@@ -897,7 +888,7 @@ std::vector <TModID> CModHandler::validateAndSortDependencies(std::vector <TModI
 }
 
 
-std::vector<std::string> CModHandler::getModList(std::string path)
+std::vector<std::string> CModHandler::getModList(const std::string& path)
 {
 	std::string modDir = boost::to_upper_copy(path + "MODS/");
 	size_t depth = boost::range::count(modDir, '/');
@@ -915,7 +906,7 @@ std::vector<std::string> CModHandler::getModList(std::string path)
 
 	//storage for found mods
 	std::vector<std::string> foundMods;
-	for (auto & entry : list)
+	for (const auto & entry : list)
 	{
 		std::string name = entry.getName();
 		name.erase(0, modDir.size()); //Remove path prefix
@@ -955,13 +946,13 @@ const TModID & CModHandler::scopeMap()
 	return scope;
 }
 
-void CModHandler::loadMods(std::string path, std::string parent, const JsonNode & modSettings, bool enableMods)
+void CModHandler::loadMods(const std::string& path, const std::string& parent, const JsonNode & modSettings, bool enableMods)
 {
-	for(std::string modName : getModList(path))
+	for(const std::string& modName : getModList(path))
 		loadOneMod(modName, parent, modSettings, enableMods);
 }
 
-void CModHandler::loadOneMod(std::string modName, std::string parent, const JsonNode & modSettings, bool enableMods)
+void CModHandler::loadOneMod(std::string modName, const std::string& parent, const JsonNode & modSettings, bool enableMods)
 {
 	boost::to_lower(modName);
 	std::string modFullName = parent.empty() ? modName : parent + '.' + modName;
@@ -1007,6 +998,7 @@ void CModHandler::loadMods(bool onlyEssential)
 std::vector<std::string> CModHandler::getAllMods()
 {
 	std::vector<std::string> modlist;
+	modlist.reserve(allMods.size());
 	for (auto & entry : allMods)
 		modlist.push_back(entry.first);
 	return modlist;
@@ -1039,7 +1031,7 @@ static ISimpleResourceLoader * genModFilesystem(const std::string & modName, con
 		return CResourceHandler::createFileSystem(CModInfo::getModDir(modName), defaultFS);
 }
 
-static ui32 calculateModChecksum(const std::string modName, ISimpleResourceLoader * filesystem)
+static ui32 calculateModChecksum(const std::string& modName, ISimpleResourceLoader * filesystem)
 {
 	boost::crc_32_type modChecksum;
 	// first - add current VCMI version into checksum to force re-validation on VCMI updates
@@ -1082,7 +1074,7 @@ void CModHandler::loadModFilesystems()
 	}
 }
 
-std::set<TModID> CModHandler::getModDependencies(TModID modId, bool & isModFound)
+std::set<TModID> CModHandler::getModDependencies(const TModID& modId, bool & isModFound)
 {
 	auto it = allMods.find(modId);
 	isModFound = (it != allMods.end());
@@ -1099,10 +1091,10 @@ void CModHandler::initializeConfig()
 	loadConfigFromFile("defaultMods.json");
 }
 
-void CModHandler::loadTranslation(TModID modName)
+void CModHandler::loadTranslation(const TModID& modName)
 {
 	auto const & mod = allMods[modName];
-	std::string language = VLC->generaltexth->getInstalledLanguage();
+	std::string language = CGeneralTextHandler::getInstalledLanguage();
 
 	for (auto const & config : mod.config["translations"].Vector())
 		VLC->generaltexth->loadTranslationOverrides(JsonNode(ResourceID(config.String(), EResType::TEXT)));
@@ -1113,7 +1105,8 @@ void CModHandler::loadTranslation(TModID modName)
 
 void CModHandler::load()
 {
-	CStopWatch totalTime, timer;
+	CStopWatch totalTime;
+	CStopWatch timer;
 
 	logMod->info("\tInitializing content handler: %d ms", timer.getDiff());
 
@@ -1198,7 +1191,7 @@ void CModHandler::parseIdentifier(const std::string & fullIdentifier, std::strin
 
 	auto p2 = vstd::splitStringToPair(p.second, '.');
 
-	if(p2.first != "")
+	if(!p2.first.empty())
 	{
 		type = p2.first;
 		identifier = p2.second;
@@ -1221,7 +1214,7 @@ std::string CModHandler::makeFullIdentifier(const std::string & scope, const std
 	//ignore scope if identifier is scoped
 	auto scopeAndName = vstd::splitStringToPair(identifier, ':');
 
-	if(scopeAndName.first != "")
+	if(!scopeAndName.first.empty())
 	{
 		actualScope = scopeAndName.first;
 		actualName = scopeAndName.second;

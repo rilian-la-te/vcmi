@@ -125,8 +125,8 @@ namespace Validation
 	const TValidatorMap & getKnownFieldsFor(JsonNode::JsonType type);
 	const TFormatMap & getKnownFormats();
 
-	std::string check(std::string schemaName, const JsonNode & data);
-	std::string check(std::string schemaName, const JsonNode & data, ValidationData & validator);
+	std::string check(const std::string& schemaName, const JsonNode & data);
+	std::string check(const std::string& schemaName, const JsonNode & data, ValidationData & validator);
 	std::string check(const JsonNode & schema, const JsonNode & data, ValidationData & validator);
 }
 

@@ -142,7 +142,7 @@ public:
 		std::map<ui32, ConstTransitivePtr<CGHeroInstance> > heroesPool; //[subID] - heroes available to buy; nullptr if not available
 		std::map<ui32,ui8> pavailable; // [subid] -> which players can recruit hero (binary flags)
 
-		CGHeroInstance * pickHeroFor(bool native, PlayerColor player, const CTown *town,
+		CGHeroInstance * pickHeroFor(bool native, const PlayerColor& player, const CTown *town,
 			std::map<ui32, ConstTransitivePtr<CGHeroInstance> > &available, CRandomGenerator & rand, const CHeroClass *bannedClass = nullptr) const;
 
 		template <typename Handler> void serialize(Handler &h, const int version)
@@ -174,7 +174,7 @@ public:
 
 	void updateEntity(Metatype metatype, int32_t index, const JsonNode & data) override;
 
-	void giveHeroArtifact(CGHeroInstance *h, ArtifactID aid);
+	void giveHeroArtifact(CGHeroInstance *h, const ArtifactID& aid);
 
 	void apply(CPack *pack);
 	BattleField battleGetBattlefieldType(int3 tile, CRandomGenerator & rand);
@@ -190,10 +190,10 @@ public:
 
 	// ----- victory, loss condition checks -----
 
-	EVictoryLossCheckResult checkForVictoryAndLoss(PlayerColor player) const;
-	bool checkForVictory(PlayerColor player, const EventCondition & condition) const; //checks if given player is winner
+	EVictoryLossCheckResult checkForVictoryAndLoss(const PlayerColor& player) const;
+	bool checkForVictory(const PlayerColor& player, const EventCondition & condition) const; //checks if given player is winner
 	PlayerColor checkForStandardWin() const; //returns color of player that accomplished standard victory conditions or 255 (NEUTRAL) if no winner
-	bool checkForStandardLoss(PlayerColor player) const; //checks if given player lost the game
+	bool checkForStandardLoss(const PlayerColor& player) const; //checks if given player lost the game
 
 	void obtainPlayersStats(SThievesGuildInfo & tgi, int level); //fills tgi with info about other players that is available at given level of thieves' guild
 	std::map<ui32, ConstTransitivePtr<CGHeroInstance> > unusedHeroesFromPool(); //heroes pool without heroes that are available in taverns
@@ -242,7 +242,7 @@ private:
 
 	struct CampaignHeroReplacement
 	{
-		CampaignHeroReplacement(CGHeroInstance * hero, ObjectInstanceID heroPlaceholderId);
+		CampaignHeroReplacement(CGHeroInstance * hero, const ObjectInstanceID& heroPlaceholderId);
 		CGHeroInstance * hero;
 		ObjectInstanceID heroPlaceholderId;
 	};
@@ -268,7 +268,7 @@ private:
 
 	void replaceHeroesPlaceholders(const std::vector<CampaignHeroReplacement> & campaignHeroReplacements);
 	void placeStartingHeroes();
-	void placeStartingHero(PlayerColor playerColor, HeroTypeID heroTypeId, int3 townPos);
+	void placeStartingHero(const PlayerColor& playerColor, const HeroTypeID& heroTypeId, int3 townPos);
 	void initStartingResources();
 	void initHeroes();
 	void placeHeroesInTowns();
@@ -288,12 +288,12 @@ private:
 
 	// ---- misc helpers -----
 
-	CGHeroInstance * getUsedHero(HeroTypeID hid) const;
-	bool isUsedHero(HeroTypeID hid) const; //looks in heroes and prisons
+	CGHeroInstance * getUsedHero(const HeroTypeID& hid) const;
+	bool isUsedHero(const HeroTypeID& hid) const; //looks in heroes and prisons
 	std::set<HeroTypeID> getUnusedAllowedHeroes(bool alsoIncludeNotAllowed = false) const;
 	std::pair<Obj,int> pickObject(CGObjectInstance *obj); //chooses type of object to be randomized, returns <type, subtype>
-	int pickUnusedHeroTypeRandomly(PlayerColor owner); // picks a unused hero type randomly
-	int pickNextHeroType(PlayerColor owner); // picks next free hero type of the H3 hero init sequence -> chosen starting hero, then unused hero type randomly
+	int pickUnusedHeroTypeRandomly(const PlayerColor& owner); // picks a unused hero type randomly
+	int pickNextHeroType(const PlayerColor& owner); // picks next free hero type of the H3 hero init sequence -> chosen starting hero, then unused hero type randomly
 	UpgradeInfo fillUpgradeInfo(const CStackInstance &stack) const;
 
 	// ---- data -----

@@ -29,14 +29,14 @@ size_t Unicode::getCharacterSize(char firstByte)
 	// 11110xxx -> 4 - last allowed in current standard
 	// 1111110x -> 6 - last allowed in original standard
 
-	if ((ui8)firstByte < 0x80)
+	if (static_cast<ui8>(firstByte) < 0x80)
 		return 1; // ASCII
 
 	size_t ret = 0;
 
 	for (size_t i=0; i<8; i++)
 	{
-		if (((ui8)firstByte & (0x80 >> i)) != 0)
+		if ((static_cast<ui8>(firstByte) & (0x80 >> i)) != 0)
 			ret++;
 		else
 			break;
@@ -47,12 +47,12 @@ size_t Unicode::getCharacterSize(char firstByte)
 bool Unicode::isValidCharacter(const char * character, size_t maxSize)
 {
 	// can't be first byte in UTF8
-	if ((ui8)character[0] >= 0x80 && (ui8)character[0] < 0xC0)
+	if (static_cast<ui8>(character[0]) >= 0x80 && static_cast<ui8>(character[0]) < 0xC0)
 		return false;
 	// first character must follow rules checked in getCharacterSize
-	size_t size = getCharacterSize((ui8)character[0]);
+	size_t size = getCharacterSize(static_cast<ui8>(character[0]));
 
-	if ((ui8)character[0] > 0xF4)
+	if (static_cast<ui8>(character[0]) > 0xF4)
 		return false; // above maximum allowed in standard (UTF codepoints are capped at 0x0010FFFF)
 
 	if (size > maxSize)
@@ -61,7 +61,7 @@ bool Unicode::isValidCharacter(const char * character, size_t maxSize)
 	// remaining characters must have highest bit set to 1
 	for (size_t i = 1; i < size; i++)
 	{
-		if (((ui8)character[i] & 0x80) == 0)
+		if ((static_cast<ui8>(character[i]) & 0x80) == 0)
 			return false;
 	}
 	return true;
@@ -70,7 +70,7 @@ bool Unicode::isValidCharacter(const char * character, size_t maxSize)
 bool Unicode::isValidASCII(const std::string & text)
 {
 	for (const char & ch : text)
-		if (ui8(ch) >= 0x80 )
+		if (static_cast<ui8>(ch) >= 0x80 )
 			return false;
 	return true;
 }
@@ -78,7 +78,7 @@ bool Unicode::isValidASCII(const std::string & text)
 bool Unicode::isValidASCII(const char * data, size_t size)
 {
 	for (size_t i=0; i<size; i++)
-		if (ui8(data[i]) >= 0x80 )
+		if (static_cast<ui8>(data[i]) >= 0x80 )
 			return false;
 	return true;
 }
@@ -104,7 +104,7 @@ bool Unicode::isValidString(const char * data, size_t size)
 }
 
 /// Detects language and encoding of H3 text files based on matching against pregenerated footprints of H3 file
-void CGeneralTextHandler::detectInstallParameters() const
+void CGeneralTextHandler::detectInstallParameters() 
 {
 	struct LanguageFootprint
 	{
@@ -146,7 +146,7 @@ void CGeneralTextHandler::detectInstallParameters() const
 	// While this will reduce precision, it should not affect output
 	// since we expect only tiny differences compared to reference footprints
 	for (size_t i = 0; i < 256; ++i)
-		footprint[i/16] += double(charCount[i]) / data.second;
+		footprint[i/16] += static_cast<double>(charCount[i]) / data.second;
 
 	logGlobal->debug("Language footprint: %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f %f",
 			footprint[0], footprint[1], footprint[2],  footprint[3],  footprint[4],  footprint[5],  footprint[6],  footprint[7],
@@ -229,7 +229,7 @@ protected:
 
 CLegacyConfigParser::CLegacyConfigParser(std::string URI)
 {
-	init(CResourceHandler::get()->load(ResourceID(URI, EResType::TEXT)));
+	init(CResourceHandler::get()->load(ResourceID(std::move(URI), EResType::TEXT)));
 }
 
 CLegacyConfigParser::CLegacyConfigParser(const std::unique_ptr<CInputStream> & input)
@@ -240,7 +240,7 @@ CLegacyConfigParser::CLegacyConfigParser(const std::unique_ptr<CInputStream> & i
 void CLegacyConfigParser::init(const std::unique_ptr<CInputStream> & input)
 {
 	data.reset(new char[input->getSize()]);
-	input->read((ui8*)data.get(), input->getSize());
+	input->read(reinterpret_cast<ui8*>(data.get()), input->getSize());
 
 	curr = data.get();
 	end = curr + input->getSize();
@@ -524,7 +524,7 @@ CGeneralTextHandler::CGeneralTextHandler():
 
 		for (size_t i = 0; i < 9; ++i) //9 types of quests
 		{
-			std::string questName = CQuest::missionName(CQuest::Emission(1+i));
+			std::string questName = CQuest::missionName(static_cast<CQuest::Emission>(1+i));
 
 			for (size_t j = 0; j < 5; ++j)
 			{
@@ -604,7 +604,7 @@ CGeneralTextHandler::CGeneralTextHandler():
 	}
 }
 
-int32_t CGeneralTextHandler::pluralText(const int32_t textIndex, const int32_t count) const
+int32_t CGeneralTextHandler::pluralText(const int32_t textIndex, const int32_t count) 
 {
 	if(textIndex == 0)
 		return 0;
@@ -632,10 +632,10 @@ void CGeneralTextHandler::dumpAllTexts()
 	logGlobal->info("BEGIN TEXT EXPORT");
 	for ( auto const & entry : stringsLocalizations)
 		if (stringsOverrides.count(entry.first) == 0)
-			logGlobal->info("\"%s\" : \"%s\",", entry.first, escapeString(entry.second));
+			logGlobal->info(R"("%s" : "%s",)", entry.first, escapeString(entry.second));
 
 	for ( auto const & entry : stringsOverrides)
-		logGlobal->info("\"%s\" : \"%s\",", entry.first, escapeString(entry.second));
+		logGlobal->info(R"("%s" : "%s",)", entry.first, escapeString(entry.second));
 
 	logGlobal->info("END TEXT EXPORT");
 }
@@ -675,9 +675,9 @@ std::vector<std::string> CGeneralTextHandler::findStringsWithPrefix(std::string 
 	return result;
 }
 
-LegacyTextContainer::LegacyTextContainer(CGeneralTextHandler & owner, std::string const & basePath):
+LegacyTextContainer::LegacyTextContainer(CGeneralTextHandler & owner, std::string basePath):
 	owner(owner),
-	basePath(basePath)
+	basePath(std::move(basePath))
 {}
 
 std::string LegacyTextContainer::operator[](size_t index) const
@@ -685,9 +685,9 @@ std::string LegacyTextContainer::operator[](size_t index) const
 	return owner.translate(basePath, index);
 }
 
-LegacyHelpContainer::LegacyHelpContainer(CGeneralTextHandler & owner, std::string const & basePath):
+LegacyHelpContainer::LegacyHelpContainer(CGeneralTextHandler & owner, std::string basePath):
 	owner(owner),
-	basePath(basePath)
+	basePath(std::move(basePath))
 {}
 
 std::pair<std::string, std::string> LegacyHelpContainer::operator[](size_t index) const

@@ -100,7 +100,7 @@ class DLL_LINKAGE LegacyTextContainer
 	std::string basePath;
 
 public:
-	LegacyTextContainer(CGeneralTextHandler & owner, std::string const & basePath);
+	LegacyTextContainer(CGeneralTextHandler & owner, std::string basePath);
 	std::string operator [](size_t index) const;
 };
 
@@ -111,7 +111,7 @@ class DLL_LINKAGE LegacyHelpContainer
 	std::string basePath;
 
 public:
-	LegacyHelpContainer(CGeneralTextHandler & owner, std::string const & basePath);
+	LegacyHelpContainer(CGeneralTextHandler & owner, std::string  basePath);
 	std::pair<std::string, std::string> operator[](size_t index) const;
 };
 
@@ -158,7 +158,7 @@ class DLL_LINKAGE CGeneralTextHandler
 	std::vector<size_t> scenariosCountPerCampaign;
 
 	/// Attempts to detect encoding & language of H3 files
-	void detectInstallParameters() const;
+	static void detectInstallParameters() ;
 public:
 
 	/// Loads translation from provided json
@@ -226,7 +226,7 @@ public:
 
 	std::vector<std::string> findStringsWithPrefix(std::string const & prefix);
 
-	int32_t pluralText(const int32_t textIndex, const int32_t count) const;
+	static int32_t pluralText(const int32_t textIndex, const int32_t count) ;
 
 	size_t getCampaignLength(size_t campaignID) const;
 

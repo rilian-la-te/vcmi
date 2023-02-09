@@ -570,7 +570,7 @@ bfs::path VCMIDirsXDG::userCachePath() const
 bfs::path VCMIDirsXDG::userConfigPath() const
 {
 	// $XDG_CONFIG_HOME, default: $HOME/.config
-	const char * tempResult;
+	const char * tempResult = nullptr;
 	if ((tempResult = getenv("XDG_CONFIG_HOME")))
 		return bfs::path(tempResult) / "vcmi";
 	else if ((tempResult = getenv("HOME")))
@@ -591,11 +591,11 @@ std::vector<bfs::path> VCMIDirsXDG::dataPaths() const
 	if(developmentMode())
 	{
 		//For now we'll disable usage of system directories when VCMI running from bin directory
-		ret.push_back(".");
+		ret.emplace_back(".");
 	}
 	else
 	{
-		ret.push_back(M_DATA_DIR);
+		ret.emplace_back(M_DATA_DIR);
 		const char * tempResult;
 		if((tempResult = getenv("XDG_DATA_DIRS")) != nullptr)
 		{
