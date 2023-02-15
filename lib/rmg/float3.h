@@ -19,30 +19,30 @@ public:
 	float x, y;
 	si32 z;
 
-	float3() : x(0), y(0), z(0) {}
-	float3(const float X, const float Y, const si32 Z): x(X), y(Y), z(Z) {}
-	float3(const float3 & copy) : x(copy.x), y(copy.y), z(copy.z) {}
-	float3 & operator=(const float3 & copy) { x = copy.x; y = copy.y; z = copy.z; return *this; }
+	constexpr float3() : x(0), y(0), z(0) {}
+	constexpr float3(const float X, const float Y, const si32 Z): x(X), y(Y), z(Z) {}
+	constexpr float3(const float3 & copy) = default;
+	constexpr float3 & operator=(const float3 & copy) = default;
 
 	// returns float3 with coordinates increased by corresponding coordinate of given float3
-	float3 operator+(const float3 & i) const { return float3(x + i.x, y + i.y, z + i.z); }
+	constexpr float3 operator+(const float3 & i) const { return float3(x + i.x, y + i.y, z + i.z); }
 	// returns float3 with coordinates increased by given numer
-	float3 operator+(const float i) const { return float3(x + i, y + i, z + (si32)i); }
+	constexpr float3 operator+(const float i) const { return float3(x + i, y + i, z + (si32)i); }
 	// returns float3 with coordinates decreased by corresponding coordinate of given float3
-	float3 operator-(const float3 & i) const { return float3(x - i.x, y - i.y, z - i.z); }
+	constexpr float3 operator-(const float3 & i) const { return float3(x - i.x, y - i.y, z - i.z); }
 	// returns float3 with coordinates decreased by given numer
-	float3 operator-(const float i) const { return float3(x - i, y - i, z - (si32)i); }
+	constexpr float3 operator-(const float i) const { return float3(x - i, y - i, z - (si32)i); }
 
 	// returns float3 with plane coordinates decreased by given numer
-	float3 operator*(const float i) const {return float3(x * i, y * i, z);}
+	constexpr float3 operator*(const float i) const {return float3(x * i, y * i, z);}
 	// returns float3 with plane coordinates decreased by given numer
-	float3 operator/(const float i) const {return float3(x / i, y / i, z);}
+	constexpr float3 operator/(const float i) const {return float3(x / i, y / i, z);}
 
 	// returns opposite position
-	float3 operator-() const { return float3(-x, -y, -z); }
+	constexpr float3 operator-() const { return float3(-x, -y, -z); }
 
 	// returns squared distance on Oxy plane (z coord is not used)
-	double dist2dSQ(const float3 & o) const
+	constexpr double dist2dSQ(const float3 & o) const
 	{
 		const double dx = (x - o.x);
 		const double dy = (y - o.y);
@@ -59,9 +59,9 @@ public:
 	// returns distance on Oxy plane (z coord is not used)
 	double dist2d(const float3 &other) const { return std::sqrt(dist2dSQ(other)); }
 
-	bool areNeighbours(const float3 &other) const { return (dist2dSQ(other) < 4.0) && z == other.z; }
+	constexpr bool areNeighbours(const float3 &other) const { return (dist2dSQ(other) < 4.0) && z == other.z; }
 
-	float3& operator+=(const float3 & i)
+	constexpr float3& operator+=(const float3 & i)
 	{
 		x += i.x;
 		y += i.y;
@@ -69,7 +69,7 @@ public:
 
 		return *this;
 	}
-	float3& operator+=(const float & i)
+	constexpr float3& operator+=(const float & i)
 	{
 		x += i;
 		y += i;
@@ -78,7 +78,7 @@ public:
 		return *this;
 	}
 
-	float3& operator-=(const float3 & i)
+	constexpr float3& operator-=(const float3 & i)
 	{
 		x -= i.x;
 		y -= i.y;
@@ -86,7 +86,7 @@ public:
 
 		return *this;
 	}
-	float3& operator-=(const float & i)
+	constexpr float3& operator-=(const float & i)
 	{
 		x += i;
 		y += i;
@@ -96,7 +96,7 @@ public:
 	}
 
 	// scale on plane
-	float3& operator*=(const float & i)
+	constexpr float3& operator*=(const float & i)
 	{
 		x *= i;
 		y *= i;
@@ -104,7 +104,7 @@ public:
 		return *this;
 	}
 	// scale on plane
-	float3& operator/=(const float & i)
+	constexpr float3& operator/=(const float & i)
 	{
 		x /= i;
 		y /= i;
@@ -112,10 +112,10 @@ public:
 		return *this;
 	}
 
-	bool operator==(const float3 & i) const { return (x == i.x) && (y == i.y) && (z == i.z); }
-	bool operator!=(const float3 & i) const { return (x != i.x) || (y != i.y) || (z != i.z); }
+	constexpr bool operator==(const float3 & i) const { return (x == i.x) && (y == i.y) && (z == i.z); }
+	constexpr bool operator!=(const float3 & i) const { return (x != i.x) || (y != i.y) || (z != i.z); }
 
-	bool operator<(const float3 & i) const
+	constexpr bool operator<(const float3 & i) const
 	{
 		if (z<i.z)
 			return true;
@@ -140,7 +140,7 @@ public:
 				" " + boost::lexical_cast<std::string>(z) + ")";
 	}
 
-	bool valid() const
+	constexpr bool valid() const
 	{
 		return z >= 0; //minimal condition that needs to be fulfilled for tiles in the map
 	}
