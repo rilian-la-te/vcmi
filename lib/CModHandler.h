@@ -174,7 +174,7 @@ public:
 	const ContentTypeHandler & operator[] (const std::string & name) const;
 };
 
-typedef std::string TModID;
+using TModID = std::string;
 
 class DLL_LINKAGE CModInfo
 {

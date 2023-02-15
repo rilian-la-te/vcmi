@@ -12,8 +12,8 @@
 
 VCMI_LIB_NAMESPACE_BEGIN
 
-typedef si32 TResource;
-typedef si64 TResourceCap; //to avoid overflow when adding integers. Signed values are easier to control.
+using TResource = si32;
+using TResourceCap = si64; //to avoid overflow when adding integers. Signed values are easier to control.
 
 class JsonNode;
 class JsonSerializeFormat;
@@ -167,7 +167,7 @@ namespace Res
 	};
 }
 
-typedef Res::ResourceSet TResources;
+using TResources = Res::ResourceSet;
 
 
 VCMI_LIB_NAMESPACE_END

@@ -66,17 +66,17 @@ class DLL_LINKAGE CTypeList: public boost::noncopyable
 {
 //public:
 	struct TypeDescriptor;
-	typedef std::shared_ptr<TypeDescriptor> TypeInfoPtr;
-	typedef std::weak_ptr<TypeDescriptor> WeakTypeInfoPtr;
+	using TypeInfoPtr = std::shared_ptr<TypeDescriptor>;
+	using WeakTypeInfoPtr = std::weak_ptr<TypeDescriptor>;
 	struct TypeDescriptor
 	{
 		ui16 typeID;
 		const char *name;
 		std::vector<WeakTypeInfoPtr> children, parents;
 	};
-	typedef boost::shared_mutex TMutex;
-	typedef boost::unique_lock<TMutex> TUniqueLock;
-	typedef boost::shared_lock<TMutex> TSharedLock;
+	using TMutex = boost::shared_mutex;
+	using TUniqueLock = boost::unique_lock<TMutex>;
+	using TSharedLock = boost::shared_lock<TMutex>;
 private:
 	mutable TMutex mx;
 

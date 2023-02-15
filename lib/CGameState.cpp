@@ -2452,7 +2452,7 @@ bool CGameState::checkForStandardLoss( PlayerColor player ) const
 
 struct statsHLP
 {
-	typedef std::pair< PlayerColor, si64 > TStat;
+	using TStat = std::pair<PlayerColor, si64>;
 	//converts [<player's color, value>] to vec[place] -> platers
 	static std::vector< std::vector< PlayerColor > > getRank( std::vector<TStat> stats )
 	{

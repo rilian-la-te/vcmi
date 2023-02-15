@@ -149,7 +149,7 @@ class DLL_LINKAGE BinaryDeserializer : public CLoaderBase
 			T *&ptr = *static_cast<T**>(data);
 
 			//create new object under pointer
-			typedef typename std::remove_pointer<T>::type npT;
+			using npT = typename std::remove_pointer<T>::type;
 			ptr = ClassObjectCreator<npT>::invoke(); //does new npT or throws for abstract classes
 			s.ptrAllocated(ptr, pid);
 			//T is most derived known type, it's time to call actual serialize
@@ -203,7 +203,7 @@ public:
 	{
 		assert( fileVersion != 0 );
 		////that const cast is evil because it allows to implicitly overwrite const objects when deserializing
-		typedef typename std::remove_const<T>::type nonConstT;
+		using nonConstT = typename std::remove_const<T>::type;
 		nonConstT &hlp = const_cast<nonConstT&>(data);
 		hlp.serialize(*this,fileVersion);
 	}
@@ -262,9 +262,9 @@ public:
 
 		if(reader->smartVectorMembersSerialization)
 		{
-			typedef typename std::remove_const<typename std::remove_pointer<T>::type>::type TObjectType; //eg: const CGHeroInstance * => CGHeroInstance
-			typedef typename VectorizedTypeFor<TObjectType>::type VType;									 //eg: CGHeroInstance -> CGobjectInstance
-			typedef typename VectorizedIDType<TObjectType>::type IDType;
+			using TObjectType = typename std::remove_const<typename std::remove_pointer<T>::type>::type; //eg: const CGHeroInstance * => CGHeroInstance
+			using VType = typename VectorizedTypeFor<TObjectType>::type;									 //eg: CGHeroInstance -> CGobjectInstance
+			using IDType = typename VectorizedIDType<TObjectType>::type;
 			if(const auto *info = reader->getVectorizedTypeInfo<VType, IDType>())
 			{
 				IDType id;
@@ -306,8 +306,8 @@ public:
 
 		if(!tid)
 		{
-			typedef typename std::remove_pointer<T>::type npT;
-			typedef typename std::remove_const<npT>::type ncpT;
+			using npT = typename std::remove_pointer<T>::type;
+			using ncpT = typename std::remove_const<npT>::type;
 			data = ClassObjectCreator<ncpT>::invoke();
 			ptrAllocated(data, pid);
 			load(*data);
@@ -344,7 +344,7 @@ public:
 	template <typename T>
 	void load(std::shared_ptr<T> &data)
 	{
-		typedef typename std::remove_const<T>::type NonConstT;
+		using NonConstT = typename std::remove_const<T>::type;
 		NonConstT *internalPtr;
 		load(internalPtr);
 
@@ -496,7 +496,7 @@ public:
 	template <BOOST_VARIANT_ENUM_PARAMS(typename T)>
 	void load(boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)> &data)
 	{
-		typedef boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)> TVariant;
+		using TVariant = boost::variant<BOOST_VARIANT_ENUM_PARAMS(T)>;
 
 		VariantLoaderHelper<TVariant, BinaryDeserializer> loader(*this);
 

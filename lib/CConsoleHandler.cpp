@@ -22,7 +22,7 @@ DLL_LINKAGE CConsoleHandler * console = nullptr;
 VCMI_LIB_NAMESPACE_END
 
 #ifndef VCMI_WINDOWS
-	typedef std::string TColor;
+	using TColor = std::string;
 	#define CONSOLE_GREEN "\x1b[1;32m"
 	#define CONSOLE_RED "\x1b[1;31m"
 	#define CONSOLE_MAGENTA "\x1b[1;35m"
@@ -36,7 +36,7 @@ VCMI_LIB_NAMESPACE_END
 #ifndef __MINGW32__
 	#pragma comment(lib, "dbghelp.lib")
 #endif
-	typedef WORD TColor;
+	using TColor = WORD;
 	HANDLE handleIn;
 	HANDLE handleOut;
 	HANDLE handleErr;

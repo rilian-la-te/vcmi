@@ -278,7 +278,7 @@ template<typename Der, typename Num>
 std::ostream & operator << (std::ostream & os, BaseForID<Der, Num> id)
 {
 	//We use common type with short to force char and unsigned char to be promoted and formatted as numbers.
-	typedef typename std::common_type<short, Num>::type Number;
+	using Number = typename std::common_type<short, Num>::type;
 	return os << static_cast<Number>(id.getNum());
 }
 
@@ -286,7 +286,7 @@ template<typename EnumType>
 std::ostream & operator << (std::ostream & os, Identifier<EnumType> id)
 {
 	//We use common type with short to force char and unsigned char to be promoted and formatted as numbers.
-	typedef typename std::common_type<short, typename Identifier<EnumType>::NumericType>::type Number;
+	using Number = typename std::common_type<short, typename Identifier<EnumType>::NumericType>::type;
 	return os << static_cast<Number>(id.getNum());
 }
 
@@ -1292,13 +1292,13 @@ enum class EHealPower : ui8
 };
 
 // Typedef declarations
-typedef ui8 TFaction;
-typedef si64 TExpType;
-typedef std::pair<si64, si64> TDmgRange;
-typedef si32 TBonusSubtype;
-typedef si32 TQuantity;
+using TFaction = ui8;
+using TExpType = si64;
+using TDmgRange = std::pair<si64, si64>;
+using TBonusSubtype = si32;
+using TQuantity = si32;
 
-typedef int TRmgTemplateZoneId;
+using TRmgTemplateZoneId = int;
 
 #undef ID_LIKE_CLASS_COMMON
 #undef ID_LIKE_OPERATORS

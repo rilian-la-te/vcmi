@@ -14,8 +14,8 @@
 
 #if BOOST_VERSION >= 107000  // Boost version >= 1.70
 #include <boost/asio.hpp>
-typedef boost::asio::basic_stream_socket < boost::asio::ip::tcp > TSocket;
-typedef boost::asio::basic_socket_acceptor < boost::asio::ip::tcp > TAcceptor;
+using TSocket = boost::asio::basic_stream_socket<boost::asio::ip::tcp>;
+using TAcceptor = boost::asio::basic_socket_acceptor<boost::asio::ip::tcp>;
 #else
 namespace boost
 {
@@ -28,7 +28,7 @@ namespace boost
 
 #if BOOST_VERSION >= 106600  // Boost version >= 1.66
 		class io_context;
-		typedef io_context io_service;
+		using io_service = io_context;
 #else
 		class io_service;
 #endif
@@ -44,8 +44,8 @@ namespace boost
 	class mutex;
 }
 
-typedef boost::asio::basic_stream_socket < boost::asio::ip::tcp , boost::asio::stream_socket_service<boost::asio::ip::tcp>  > TSocket;
-typedef boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::socket_acceptor_service<boost::asio::ip::tcp> > TAcceptor;
+using TSocket = boost::asio::basic_stream_socket < boost::asio::ip::tcp , boost::asio::stream_socket_service<boost::asio::ip::tcp>>;
+using TAcceptor = boost::asio::basic_socket_acceptor<boost::asio::ip::tcp, boost::asio::socket_acceptor_service<boost::asio::ip::tcp>>;
 #endif
 
 

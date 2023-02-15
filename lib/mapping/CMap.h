@@ -168,7 +168,7 @@ struct DLL_LINKAGE EventCondition
 	}
 };
 
-typedef LogicalExpression<EventCondition> EventExpression;
+using EventExpression = LogicalExpression<EventCondition>;
 
 struct DLL_LINKAGE EventEffect
 {

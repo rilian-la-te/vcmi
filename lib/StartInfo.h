@@ -76,7 +76,7 @@ struct DLL_LINKAGE StartInfo
 	EMode mode;
 	ui8 difficulty; //0=easy; 4=impossible
 
-	typedef std::map<PlayerColor, PlayerSettings> TPlayerInfos;
+	using TPlayerInfos = std::map<PlayerColor, PlayerSettings>;
 	TPlayerInfos playerInfos; //color indexed
 
 	ui32 seedToBeUsed; //0 if not sure (client requests server to decide, will be send in reply pack)

@@ -76,7 +76,7 @@ class DLL_LINKAGE CSerializer
 		vectors[&typeid(T)] = VectorizedObjectInfo<T, U>(Vector, idRetriever);
 	}
 
-	typedef std::map<const std::type_info *, boost::any, TypeComparer> TTypeVecMap;
+	using TTypeVecMap = std::map<const std::type_info *, boost::any, TypeComparer>;
 	TTypeVecMap vectors; //entry must be a pointer to vector containing pointers to the objects of key type
 
 public:
@@ -149,42 +149,39 @@ struct is_serializeable
 template <typename T> //metafunction returning CGObjectInstance if T is its derivate or T elsewise
 struct VectorizedTypeFor
 {
-	typedef typename
+	using type = typename
 		//if
-		boost::mpl::eval_if<std::is_same<CGHeroInstance,T>,
+		boost::mpl::eval_if<std::is_same<CGHeroInstance, T>,
 		boost::mpl::identity<CGHeroInstance>,
 		//else if
-		boost::mpl::eval_if<std::is_base_of<CGObjectInstance,T>,
+		boost::mpl::eval_if<std::is_base_of<CGObjectInstance, T>,
 		boost::mpl::identity<CGObjectInstance>,
 		//else
-		boost::mpl::identity<T>
-		> >::type type;
+		boost::mpl::identity<T>>>::type;
 };
 template <typename U>
 struct VectorizedIDType
 {
-	typedef typename
-		//if
-		boost::mpl::eval_if<std::is_same<CArtifact,U>,
+	using type = typename
+		boost::mpl::eval_if<std::is_same<CArtifact, U>,
 		boost::mpl::identity<ArtifactID>,
 		//else if
-		boost::mpl::eval_if<std::is_same<CCreature,U>,
+		boost::mpl::eval_if<std::is_same<CCreature, U>,
 		boost::mpl::identity<CreatureID>,
 		//else if
-		boost::mpl::eval_if<std::is_same<CHero,U>,
+		boost::mpl::eval_if<std::is_same<CHero, U>,
 		boost::mpl::identity<HeroTypeID>,
 		//else if
-		boost::mpl::eval_if<std::is_same<CArtifactInstance,U>,
+		boost::mpl::eval_if<std::is_same<CArtifactInstance, U>,
 		boost::mpl::identity<ArtifactInstanceID>,
 		//else if
-		boost::mpl::eval_if<std::is_same<CGHeroInstance,U>,
+		boost::mpl::eval_if<std::is_same<CGHeroInstance, U>,
 		boost::mpl::identity<HeroTypeID>,
 		//else if
-		boost::mpl::eval_if<std::is_base_of<CGObjectInstance,U>,
+		boost::mpl::eval_if<std::is_base_of<CGObjectInstance, U>,
 		boost::mpl::identity<ObjectInstanceID>,
 		//else
-		boost::mpl::identity<si32>
-		> > > > > >::type type;
+		boost::mpl::identity<si32>>>>>>>::type;
 };
 
 /// Base class for deserializers

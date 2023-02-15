@@ -40,8 +40,8 @@ std::shared_ptr<rett> createAny(const boost::filesystem::path & libpath, const s
 	// is possible only via specializations of this template
 	throw std::runtime_error("Could not resolve ai library " + libpath.generic_string());
 #else
-	typedef void(* TGetAIFun)(std::shared_ptr<rett> &);
-	typedef void(* TGetNameFun)(char *);
+	using TGetAIFun = void(*)(std::shared_ptr<rett> &);
+	using TGetNameFun = void(*)(char *);
 
 	char temp[150];
 

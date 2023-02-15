@@ -30,19 +30,14 @@ namespace LogicalExpressionDetail
 		};
 		template<EOperations tag> class Element;
 
-		typedef Element<ANY_OF> OperatorAny;
-		typedef Element<ALL_OF> OperatorAll;
-		typedef Element<NONE_OF> OperatorNone;
+		using OperatorAny = Element<ANY_OF>;
+		using OperatorAll = Element<ALL_OF>;
+		using OperatorNone = Element<NONE_OF>;
 
-		typedef ContainedClass Value;
+		using Value = ContainedClass;
 
 		/// Variant that contains all possible elements from logical expression
-		typedef boost::variant<
-			OperatorAll,
-			OperatorAny,
-			OperatorNone,
-			Value
-			> Variant;
+		using Variant = boost::variant<OperatorAll, OperatorAny, OperatorNone, Value>;
 
 		/// Variant element, contains list of expressions to which operation "tag" should be applied
 		template<EOperations tag>
@@ -73,7 +68,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class TestVisitor : public boost::static_visitor<bool>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 		std::function<bool(const typename Base::Value &)> classTest;
 
@@ -119,7 +114,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class PossibilityVisitor : public boost::static_visitor<bool>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 	protected:
 		std::function<bool(const typename Base::Value &)> satisfiabilityTest;
@@ -167,7 +162,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class SatisfiabilityVisitor : public PossibilityVisitor<ContainedClass>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 	public:
 		SatisfiabilityVisitor(std::function<bool (const typename Base::Value &)> satisfiabilityTest,
@@ -202,7 +197,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class FalsifiabilityVisitor : public PossibilityVisitor<ContainedClass>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 	public:
 		FalsifiabilityVisitor(std::function<bool (const typename Base::Value &)> satisfiabilityTest,
@@ -238,8 +233,8 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class CandidatesVisitor : public boost::static_visitor<std::vector<ContainedClass> >
 	{
-		typedef ExpressionBase<ContainedClass> Base;
-		typedef std::vector<typename Base::Value> TValueList;
+		using Base = ExpressionBase<ContainedClass>;
+		using TValueList = std::vector<typename Base::Value>;
 
 		TestVisitor<ContainedClass> classTest;
 
@@ -288,7 +283,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class ForEachVisitor : public boost::static_visitor<typename ExpressionBase<ContainedClass>::Variant>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 		std::function<typename Base::Variant(const typename Base::Value &)> visitor;
 
@@ -315,7 +310,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class MinimizingVisitor : public boost::static_visitor<typename ExpressionBase<ContainedClass>::Variant>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 	public:
 		typename Base::Variant operator()(const typename Base::Value & element) const
@@ -360,7 +355,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class Reader
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 		std::function<typename Base::Value(const JsonNode &)> classParser;
 
@@ -400,7 +395,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class Writer : public boost::static_visitor<JsonNode>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 		std::function<JsonNode(const typename Base::Value &)> classPrinter;
 
@@ -445,7 +440,7 @@ namespace LogicalExpressionDetail
 	template <typename ContainedClass>
 	class Printer : public boost::static_visitor<std::string>
 	{
-		typedef ExpressionBase<ContainedClass> Base;
+		using Base = ExpressionBase<ContainedClass>;
 
 		std::function<std::string(const typename Base::Value &)> classPrinter;
 		std::unique_ptr<TestVisitor<ContainedClass>> statusTest;
@@ -510,16 +505,16 @@ namespace LogicalExpressionDetail
 template<typename ContainedClass>
 class LogicalExpression
 {
-	typedef LogicalExpressionDetail::ExpressionBase<ContainedClass> Base;
+	using Base = LogicalExpressionDetail::ExpressionBase<ContainedClass>;
 public:
 	/// Type of values used in expressions, same as ContainedClass
-	typedef typename Base::Value Value;
+	using Value = typename Base::Value;
 	/// Operators for use in expressions, all include vectors with operands
-	typedef typename Base::OperatorAny OperatorAny;
-	typedef typename Base::OperatorAll OperatorAll;
-	typedef typename Base::OperatorNone OperatorNone;
+	using OperatorAny = typename Base::OperatorAny;
+	using OperatorAll = typename Base::OperatorAll;
+	using OperatorNone = typename Base::OperatorNone;
 	/// one expression entry
-	typedef typename Base::Variant Variant;
+	using Variant = typename Base::Variant;
 
 private:
 	Variant data;

@@ -185,9 +185,9 @@ public:
 
 		if(writer->smartVectorMembersSerialization)
 		{
-			typedef typename std::remove_const<typename std::remove_pointer<T>::type>::type TObjectType;
-			typedef typename VectorizedTypeFor<TObjectType>::type VType;
-			typedef typename VectorizedIDType<TObjectType>::type IDType;
+			using TObjectType = typename std::remove_const<typename std::remove_pointer<T>::type>::type;
+			using VType = typename VectorizedTypeFor<TObjectType>::type;
+			using IDType = typename VectorizedIDType<TObjectType>::type;
 
 			if(const auto *info = writer->getVectorizedTypeInfo<VType, IDType>())
 			{
