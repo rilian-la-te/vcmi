@@ -19,37 +19,35 @@ public:
 	int x, y;
 
 	//constructors
-	Point()
-	{
-		x = y = 0;
-	};
+	constexpr Point(): x(0), y(0)
+	{};
 
-	Point(int X, int Y)
+	constexpr Point(int X, int Y)
 		:x(X),y(Y)
 	{};
 
-	Point(const int3 &a);
+	constexpr Point(const int3 &a);
 
 	template<typename T>
-	Point operator+(const T &b) const
+	constexpr Point operator+(const T &b) const
 	{
 		return Point(x+b.x,y+b.y);
 	}
 
 	template<typename T>
-	Point operator/(const T &div) const
+	constexpr Point operator/(const T &div) const
 	{
 		return Point(x/div, y/div);
 	}
 
 	template<typename T>
-	Point operator*(const T &mul) const
+	constexpr Point operator*(const T &mul) const
 	{
 		return Point(x*mul, y*mul);
 	}
 
 	template<typename T>
-	Point& operator+=(const T &b)
+	constexpr Point& operator+=(const T &b)
 	{
 		x += b.x;
 		y += b.y;
@@ -57,30 +55,30 @@ public:
 	}
 
 	template<typename T>
-	Point operator-(const T &b) const
+	constexpr Point operator-(const T &b) const
 	{
 		return Point(x - b.x, y - b.y);
 	}
 
 	template<typename T>
-	Point& operator-=(const T &b)
+	constexpr Point& operator-=(const T &b)
 	{
 		x -= b.x;
 		y -= b.y;
 		return *this;
 	}
 
-	template<typename T> Point& operator=(const T &t)
+	template<typename T> constexpr Point& operator=(const T &t)
 	{
 		x = t.x;
 		y = t.y;
 		return *this;
 	}
-	template<typename T> bool operator==(const T &t) const
+	template<typename T> constexpr bool operator==(const T &t) const
 	{
 		return x == t.x  &&  y == t.y;
 	}
-	template<typename T> bool operator!=(const T &t) const
+	template<typename T> constexpr bool operator!=(const T &t) const
 	{
 		return !(*this == t);
 	}
