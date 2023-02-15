@@ -22,94 +22,87 @@ public:
 	int w;
 	int h;
 
-	Rect()
-	{
-		x = y = w = h = -1;
-	}
-	Rect(int X, int Y, int W, int H)
-	{
-		x = X;
-		y = Y;
-		w = W;
-		h = H;
-	}
-	Rect(const Point & position, const Point & size)
-	{
-		x = position.x;
-		y = position.y;
-		w = size.x;
-		h = size.y;
-	}
-	Rect(const Rect& r) = default;
+	constexpr Rect(): x(-1), y(-1), w(-1), h(-1)
+	{}
+
+	constexpr Rect(int X, int Y, int W, int H): x(X), y(Y), w(W), h(H)
+	{}
+	constexpr Rect(const Point & position, const Point & size):
+		x(position.x),
+		y(position.y),
+		w(size.x),
+		h(size.y)
+	{}
+	constexpr Rect(const Rect& r) = default;
 
 	DLL_LINKAGE static Rect createCentered( const Point & around, const Point & size );
 	DLL_LINKAGE static Rect createCentered( const Rect  & target, const Point & size );
 	DLL_LINKAGE static Rect createAround(const Rect &r, int borderWidth);
 
-	bool isInside(int qx, int qy) const
+	constexpr bool isInside(int qx, int qy) const
 	{
 		if (qx > x && qx<x+w && qy>y && qy<y+h)
 			return true;
 		return false;
 	}
-	bool isInside(const Point & q) const
+	constexpr bool isInside(const Point & q) const
 	{
 		return isInside(q.x,q.y);
 	}
-	int top() const
+	constexpr int top() const
 	{
 		return y;
 	}
-	int bottom() const
+	constexpr int bottom() const
 	{
 		return y+h;
 	}
-	int left() const
+	constexpr int left() const
 	{
 		return x;
 	}
-	int right() const
+	constexpr int right() const
 	{
 		return x+w;
 	}
 
-	Point topLeft() const
+	constexpr Point topLeft() const
 	{
 		return Point(x,y);
 	}
-	Point topRight() const
+	constexpr Point topRight() const
 	{
 		return Point(x+w,y);
 	}
-	Point bottomLeft() const
+	constexpr Point bottomLeft() const
 	{
 		return Point(x,y+h);
 	}
-	Point bottomRight() const
+	constexpr Point bottomRight() const
 	{
 		return Point(x+w,y+h);
 	}
-	Point center() const
+	constexpr Point center() const
 	{
 		return Point(x+w/2,y+h/2);
 	}
-	Point dimensions() const
+	constexpr Point dimensions() const
 	{
 		return Point(w,h);
 	}
 
-	void moveTo(const Point & dest)
+	constexpr void moveTo(const Point & dest)
 	{
 		x = dest.x;
 		y = dest.y;
 	}
 
-	Rect operator+(const Point &p) const
+	constexpr Rect operator+(const Point &p) const
 	{
 		return Rect(x+p.x,y+p.y,w,h);
 	}
 
-	Rect& operator=(const Rect &p)
+	constexpr Rect& operator=(const Rect &p)
 	{
 		x = p.x;
 		y = p.y;
@@ -118,14 +111,14 @@ public:
 		return *this;
 	}
 
-	Rect& operator+=(const Point &p)
+	constexpr Rect& operator+=(const Point &p)
 	{
 		x += p.x;
 		y += p.y;
 		return *this;
 	}
 
-	Rect& operator-=(const Point &p)
+	constexpr Rect& operator-=(const Point &p)
 	{
 		x -= p.x;
 		y -= p.y;
