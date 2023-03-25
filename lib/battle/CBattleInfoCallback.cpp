@@ -798,17 +798,18 @@ std::vector<std::shared_ptr<const CObstacleInstance>> CBattleInfoCallback::battl
 	return obstacles;
 }
 
-std::vector<std::shared_ptr<const CObstacleInstance>> CBattleInfoCallback::getAllAffectedObstaclesByStack(const battle::Unit * unit) const
+std::vector<std::shared_ptr<const CObstacleInstance>> CBattleInfoCallback::getAllAffectedObstaclesByStack(const battle::Unit * unit, const BattleHex & dest, const std::vector<BattleHex> & passed) const
 {
-	std::vector<std::shared_ptr<const CObstacleInstance>> affectedObstacles = std::vector<std::shared_ptr<const CObstacleInstance>>();
+	auto affectedObstacles = std::vector<std::shared_ptr<const CObstacleInstance>>();
 	RETURN_IF_NOT_BATTLE(affectedObstacles);
 	if(unit->alive())
 	{
-		affectedObstacles = battleGetAllObstaclesOnPos(unit->getPosition(), false);
+		if(!vstd::contains(passed, unit->frontHex(dest)))
+			affectedObstacles = battleGetAllObstaclesOnPos(unit->frontHex(dest), false);
 		if(unit->doubleWide())
 		{
-			BattleHex otherHex = unit->occupiedHex(unit->getPosition());
-			if(otherHex.isValid())
+			BattleHex otherHex = unit->backHex(dest);
+			if(otherHex.isValid() && !vstd::contains(passed, otherHex))
 				for(auto & i : battleGetAllObstaclesOnPos(otherHex, false))
 					affectedObstacles.push_back(i);
 		}

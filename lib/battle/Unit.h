@@ -118,6 +118,9 @@ public:
 	BattleHex occupiedHex() const; //returns number of occupied hex (not the position) if stack is double wide; otherwise -1
 	BattleHex occupiedHex(BattleHex assumedPos) const; //returns number of occupied hex (not the position) if stack is double wide and would stand on assumedPos; otherwise -1
 	static BattleHex occupiedHex(BattleHex assumedPos, bool twoHex, ui8 side);
+	BattleHex frontHex(BattleHex dest) const; //returns number of front hex (not always the position) if stack will try to move to dest
+	BattleHex backHex(BattleHex dest) const; //returns number of back hex (not always the or ocuupied hex) if stack will try to move to dest
+	static BattleHex sideHex(BattleHex assumedPos, bool twoHex, ui8 side, BattleHex dest, bool backside);
 
 	///MetaStrings
 	void addText(MetaString & text, ui8 type, int32_t serial, const boost::logic::tribool & plural = boost::logic::indeterminate) const;

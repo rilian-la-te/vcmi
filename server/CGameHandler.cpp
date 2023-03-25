@@ -1398,6 +1398,7 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 
 	//initing necessary tables
 	auto accessibility = getAccesibility(curStack);
+	std::vector<BattleHex> passed;
 
 	//shifting destination (if we have double wide stack and we can occupy dest but not be exactly there)
 	if(!stackAtEnd && curStack->doubleWide() && !accessibility.accessible(dest, curStack))
@@ -1477,6 +1478,8 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 			sm.distance = path.second;
 			sm.teleporting = false;
 			sendAndApply(&sm);
+			//handling obstacle on the final field (flying stacks should be affected by both obstacles when land)
+			handleDamageFromObstacle(curStack);
 		}
 	}
 	else //for non-flying creatures
@@ -1485,6 +1488,8 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 		const int tilesToMove = std::max((int)(path.first.size() - creSpeed), 0);
 		int v = (int)path.first.size()-1;
 		path.first.push_back(start);
+		passed.reserve(tilesToMove);
+		passed.push_back(curStack->frontHex(dest));
 
 		// check if gate need to be open or closed at some point
 		BattleHex openGateAtHex, gateMayCloseAtHex;
@@ -1590,10 +1595,12 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 						if(otherHex.isValid() && !obstacle2.empty())
 							obstacleHit = true;
 					}
+					if(!obstacleHit)
+						passed.push_back(hex);
 				}
 			}
 
-			if (tiles.size() > 0)
+			if (!tiles.empty())
 			{
 				//commit movement
 				BattleStackMoved sm;
@@ -1608,8 +1615,11 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 			//we don't handle obstacle at the destination tile -> it's handled separately in the if at the end
 			if (curStack->getPosition() != dest)
 			{
-				if(stackIsMoving && start != curStack->getPosition())
-					stackIsMoving = handleDamageFromObstacle(curStack, stackIsMoving);
+				if(stackIsMoving && start != curStack->getPosition()) {
+					stackIsMoving = handleDamageFromObstacle(curStack, stackIsMoving, passed, dest);
+					for(auto h : curStack->getHexes())
+						passed.push_back(h);
+				}
 				if (gateStateChanging)
 				{
 					if (curStack->getPosition() == openGateAtHex)
@@ -1631,13 +1641,13 @@ int CGameHandler::moveStack(int stack, BattleHex dest)
 				}
 			}
 			else
+			{
 				//movement finished normally: we reached destination
 				stackIsMoving = false;
+				handleDamageFromObstacle(curStack, stackIsMoving, passed);
+			}
 		}
 	}
-
-	//handling obstacle on the final field (separate, because it affects both flying and walking stacks)
-	handleDamageFromObstacle(curStack);
 
 	return ret;
 }
@@ -5288,13 +5298,13 @@ void CGameHandler::stackTurnTrigger(const CStack *st)
 	}
 }
 
-bool CGameHandler::handleDamageFromObstacle(const CStack * curStack, bool stackIsMoving)
+bool CGameHandler::handleDamageFromObstacle(const CStack * curStack, bool stackIsMoving, const std::vector<BattleHex> & passed, const BattleHex & dest)
 {
 	if(!curStack->alive())
 		return false;
 	bool containDamageFromMoat = false;
-	bool movementStoped = false;
-	for(auto & obstacle : getAllAffectedObstaclesByStack(curStack))
+	bool movementStopped = false;
+	for(auto & obstacle : getAllAffectedObstaclesByStack(curStack, dest, passed))
 	{
 		if(obstacle->obstacleType == CObstacleInstance::SPELL_CREATED)
 		{
@@ -5305,7 +5315,7 @@ bool CGameHandler::handleDamageFromObstacle(const CStack * curStack, bool stackI
 			if(!spellObstacle)
 				COMPLAIN_RET("Invalid obstacle instance");
 
-			if(spellObstacle->trigger)
+			if(spellObstacle->triggersEffects())
 			{
 				const bool oneTimeObstacle = spellObstacle->removeOnTrigger;
 
@@ -5369,13 +5379,13 @@ bool CGameHandler::handleDamageFromObstacle(const CStack * curStack, bool stackI
 			return false;
 
 		if((obstacle->stopsMovement() && stackIsMoving))
-			movementStoped = true;
+			movementStopped = true;
 	}
 
 	if(stackIsMoving)
-		return curStack->alive() && !movementStoped;
-	else
-		return curStack->alive();
+		return curStack->alive() && !movementStopped;
+	
+	return curStack->alive();
 }
 
 void CGameHandler::handleTimeEvents()

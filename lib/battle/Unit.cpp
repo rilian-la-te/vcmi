@@ -154,13 +154,37 @@ BattleHex Unit::occupiedHex(BattleHex assumedPos, bool twoHex, ui8 side)
 	{
 		if(side == BattleSide::ATTACKER)
 			return assumedPos - 1;
-		else
-			return assumedPos + 1;
+
+		return assumedPos + 1;
 	}
-	else
+
+	return BattleHex::INVALID;
+}
+
+BattleHex Unit::frontHex(BattleHex dest) const
+{
+	return sideHex(getPosition(), doubleWide(), unitSide(), dest, false);
+}
+
+BattleHex Unit::backHex(BattleHex dest) const
+{
+	return sideHex(getPosition(), doubleWide(), unitSide(), dest, true);
+}
+
+BattleHex Unit::sideHex(BattleHex assumedPos, bool twoHex, ui8 side, BattleHex dest, bool backside)
+{
+	auto xdist = assumedPos.getX() - dest.getX();
+
+	if(twoHex) 
 	{
-		return BattleHex::INVALID;
+		if(!dest.isValid())
+			return backside ? Unit::occupiedHex(assumedPos, twoHex, side) : assumedPos;
+
+		if(backside == !(xdist > 0 && side == BattleSide::ATTACKER) || (xdist < 0 && side == BattleSide::DEFENDER))
+			return Unit::occupiedHex(assumedPos, twoHex, side);
 	}
+	
+	return assumedPos;
 }
 
 void Unit::addText(MetaString & text, ui8 type, int32_t serial, const boost::logic::tribool & plural) const
