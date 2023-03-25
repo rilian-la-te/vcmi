@@ -933,6 +933,8 @@ ReachabilityInfo CBattleInfoCallback::makeBFS(const AccessibilityInfo &accessibi
 		return ret;
 
 	const std::set<BattleHex> obstacles = getStoppers(params.perspective);
+	auto checkParams = params;
+	checkParams.ignoreKnownAccessible = true; //Ignore starting hexes obstacles
 
 	std::queue<BattleHex> hexq; //bfs queue
 
@@ -950,7 +952,7 @@ ReachabilityInfo CBattleInfoCallback::makeBFS(const AccessibilityInfo &accessibi
 		hexq.pop();
 
 		//walking stack can't step past the obstacles
-		if(curHex != params.startPosition && isInObstacle(curHex, obstacles, params))
+		if(isInObstacle(curHex, obstacles, checkParams))
 			continue;
 
 		const int costToNeighbour = ret.distances[curHex.hex] + 1;
@@ -983,6 +985,9 @@ bool CBattleInfoCallback::isInObstacle(
 
 	for(auto occupiedHex : occupiedHexes)
 	{
+		if(params.ignoreKnownAccessible && vstd::contains(params.knownAccessible, occupiedHex))
+			continue;
+
 		if(vstd::contains(obstacles, occupiedHex))
 		{
 			if(occupiedHex == ESiegeHex::GATE_BRIDGE)
