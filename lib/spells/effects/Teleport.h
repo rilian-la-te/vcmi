@@ -34,6 +34,9 @@ public:
 
 protected:
 	void serializeJsonUnitEffect(JsonSerializeFormat & handler) override;
+
+private:
+	bool triggerObstacles;
 };
 
 }

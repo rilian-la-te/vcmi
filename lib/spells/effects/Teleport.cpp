@@ -14,6 +14,7 @@
 #include "../ISpellMechanics.h"
 #include "../../NetPacks.h"
 #include "../../battle/CBattleInfoCallback.h"
+#include "../../serializer/JsonSerializeFormat.h"
 #include "../../battle/Unit.h"
 
 VCMI_LIB_NAMESPACE_BEGIN
@@ -93,10 +94,14 @@ void Teleport::apply(ServerCallback * server, const Mechanics * m, const EffectT
 	pack.tilesToMove = tiles;
 	pack.teleporting = true;
 	server->apply(&pack);
+
+	if(triggerObstacles)
+		server->handleDamageFromObstacle(targetUnit);
 }
 
 void Teleport::serializeJsonUnitEffect(JsonSerializeFormat & handler)
 {
+	handler.serializeBool("triggerObstacles", triggerObstacles);
 	//TODO: teleport options
 }
 
