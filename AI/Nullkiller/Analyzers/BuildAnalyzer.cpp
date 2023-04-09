@@ -17,7 +17,7 @@ namespace NKAI
 
 void BuildAnalyzer::updateTownDwellings(TownDevelopmentInfo & developmentInfo)
 {
-	auto townInfo = developmentInfo.town->town;
+	auto townInfo = developmentInfo.town->getTown();
 	auto creatures = townInfo->creatures;
 	auto buildings = townInfo->getAllBuildings();
 
@@ -185,7 +185,7 @@ BuildingInfo BuildAnalyzer::getBuildingOrPrerequisite(
 	bool excludeDwellingDependencies) const
 {
 	BuildingID building = toBuild;
-	auto townInfo = town->town;
+	auto townInfo = town->getTown();
 
 	const CBuilding * buildPtr = townInfo->buildings.at(building);
 	const CCreature * creature = nullptr;

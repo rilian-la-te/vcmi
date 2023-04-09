@@ -1370,7 +1370,7 @@ bool AIGateway::moveHeroToTile(int3 dst, HeroPtr h)
 
 void AIGateway::buildStructure(const CGTownInstance * t, BuildingID building)
 {
-	auto name = t->town->buildings.at(building)->getNameTranslated();
+	auto name = t->getTown()->buildings.at(building)->getNameTranslated();
 	logAi->debug("Player %d will build %s in town of %s at %s", ai->playerID, name, t->getNameTranslated(), t->pos.toString());
 	cb->buildBuilding(t, building); //just do this;
 }

@@ -1321,7 +1321,7 @@ void NewStructures::applyGs(CGameState *gs)
 		assert(t->town->buildings.at(id) != nullptr);
 		t->builtBuildings.insert(id);
 		t->updateAppearance();
-		auto currentBuilding = t->town->buildings.at(id);
+		auto currentBuilding = t->getTown()->buildings.at(id);
 
 		if(currentBuilding->overrideBids.empty())
 			continue;

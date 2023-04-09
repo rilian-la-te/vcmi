@@ -1999,7 +1999,7 @@ bool VCAI::moveHeroToTile(int3 dst, HeroPtr h)
 
 void VCAI::buildStructure(const CGTownInstance * t, BuildingID building)
 {
-	auto name = t->town->buildings.at(building)->getNameTranslated();
+	auto name = t->getTown()->buildings.at(building)->getNameTranslated();
 	logAi->debug("Player %d will build %s in town of %s at %s", ai->playerID, name, t->getNameTranslated(), t->pos.toString());
 	cb->buildBuilding(t, building); //just do this;
 }
@@ -2083,7 +2083,7 @@ void VCAI::tryRealize(Goals::BuildThis & g)
 		if (cb->canBuildStructure(t, b) == EBuildingState::ALLOWED)
 		{
 			logAi->debug("Player %d will build %s in town of %s at %s",
-				playerID, t->town->buildings.at(b)->getNameTranslated(), t->getNameTranslated(), t->pos.toString());
+				playerID, t->getTown()->buildings.at(b)->getNameTranslated(), t->getNameTranslated(), t->pos.toString());
 			cb->buildBuilding(t, b);
 			throw goalFulfilledException(sptr(g));
 		}

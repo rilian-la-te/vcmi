@@ -548,10 +548,10 @@ EBuildingState::EBuildingState CGameInfoCallback::canBuildStructure( const CGTow
 {
 	ERROR_RET_VAL_IF(!canGetFullInfo(t), "Town is not owned!", EBuildingState::TOWN_NOT_OWNED);
 
-	if(!t->town->buildings.count(ID))
+	if(!t->getTown()->buildings.count(ID))
 		return EBuildingState::BUILDING_ERROR;
 
-	const CBuilding * building = t->town->buildings.at(ID);
+	const CBuilding * building = t->getTown()->buildings.at(ID);
 
 
 	if(t->hasBuilt(ID))	//already built
