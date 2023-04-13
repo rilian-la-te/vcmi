@@ -51,6 +51,8 @@ const PlayerColor PlayerColor::NEUTRAL = PlayerColor(255);
 const PlayerColor PlayerColor::PLAYER_LIMIT = PlayerColor(PLAYER_LIMIT_I);
 const TeamID TeamID::NO_TEAM = TeamID(255);
 
+const ObjectInstanceID ObjectInstanceID::NONE = ObjectInstanceID(-1);
+
 namespace GameConstants
 {
 #ifdef VCMI_NO_EXTRA_VERSION

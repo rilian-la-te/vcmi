@@ -363,7 +363,6 @@ TEST_P(HealApplyTest, Heals)
 	EXPECT_CALL(mechanicsMock, getEffectValue()).WillRepeatedly(Return(effectValue));
 	EXPECT_CALL(mechanicsMock, applySpellBonus(Eq(effectValue), Eq(&targetUnit))).WillRepeatedly(Return(effectValue));
 	EXPECT_CALL(actualCaster, creatureIndex()).WillRepeatedly(Return(CreatureID(unitId)));
-	EXPECT_CALL(actualCaster, getHeroCaster()).WillRepeatedly(Return(nullptr));
 
 	GTEST_ASSERT_EQ(targetUnitState->getAvailableHealth(), unitAmount * unitHP / 2 + 1);
 	GTEST_ASSERT_EQ(targetUnitState->getFirstHPleft(), 1);
@@ -372,7 +371,7 @@ TEST_P(HealApplyTest, Heals)
 
 	EXPECT_CALL(*battleFake, setUnitState(Eq(unitId), _, Gt(0))).Times(1);
 
-	EXPECT_CALL(actualCaster, getCasterUnitId()).WillRepeatedly(Return(-1));
+	EXPECT_CALL(actualCaster, getBattleCasterID()).WillRepeatedly(Return(unitId));
 
 	EXPECT_CALL(serverMock, apply(Matcher<BattleUnitsChanged *>(_))).Times(1);
 	EXPECT_CALL(serverMock, apply(Matcher<BattleLogMessage *>(_))).Times(AtLeast(1));

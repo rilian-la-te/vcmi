@@ -255,7 +255,7 @@ void BattleSpellMechanics::cast(ServerCallback * server, const Target & target)
 	sc.tile = target.at(0).hexValue;
 
 	sc.castByHero = mode == Mode::HERO;
-	sc.casterStack = caster->getCasterUnitId();
+	sc.casterStack = caster->getBattleCasterID();
 	sc.manaGained = 0;
 
 	sc.activeCast = false;
@@ -400,9 +400,9 @@ void BattleSpellMechanics::beforeCast(BattleSpellCast & sc, vstd::RNG & rng, con
 
 	if(mode == Mode::MAGIC_MIRROR)
 	{
-		if(caster->getHeroCaster() == nullptr)
+		if(caster->getBattleCasterID() >= 0)
 		{
-			sc.reflectedCres.insert(caster->getCasterUnitId());
+			sc.reflectedCres.insert(caster->getBattleCasterID());
 		}
 	}
 

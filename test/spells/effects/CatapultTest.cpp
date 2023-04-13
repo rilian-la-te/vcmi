@@ -128,7 +128,7 @@ TEST_F(CatapultApplyTest, DamageToIntactPart)
 	auto & actualCaster = unitsFake.add(BattleSide::ATTACKER);
 
 	mechanicsMock.caster = &actualCaster;
-	EXPECT_CALL(actualCaster, getCasterUnitId()).WillRepeatedly(Return(-1));
+	EXPECT_CALL(actualCaster, getBattleCasterID()).WillRepeatedly(Return(-1));
 	EXPECT_CALL(mechanicsMock, isMassive()).WillRepeatedly(Return(true));
 	EXPECT_CALL(*battleFake, getWallState(_)).WillRepeatedly(Return(EWallState::DESTROYED));
 	EXPECT_CALL(*battleFake, getWallState(Eq(targetPart))).WillRepeatedly(Return(EWallState::INTACT));

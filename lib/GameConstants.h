@@ -311,6 +311,8 @@ class ObjectInstanceID : public BaseForID<ObjectInstanceID, si32>
 {
 	INSTID_LIKE_CLASS_COMMON(ObjectInstanceID, si32)
 
+	DLL_LINKAGE static const ObjectInstanceID NONE; ///If there is no object
+
 	friend class CGameInfoCallback;
 	friend class CNonConstInfoCallback;
 };

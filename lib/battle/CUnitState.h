@@ -180,7 +180,7 @@ public:
 	int32_t creatureCost() const override;
 	int32_t creatureIconIndex() const override;
 
-	int32_t getCasterUnitId() const override;
+	int32_t getBattleCasterID() const override;
 
 	int32_t getSpellSchoolLevel(const spells::Spell * spell, int32_t * outSelectedSchool = nullptr) const override;
 	int32_t getEffectLevel(const spells::Spell * spell) const override;
@@ -193,7 +193,7 @@ public:
 	int64_t getEffectValue(const spells::Spell * spell) const override;
 
 	PlayerColor getCasterOwner() const override;
-	const CGHeroInstance * getHeroCaster() const override;
+	ObjectInstanceID getAdventureCasterID() const override;
 	void getCasterName(MetaString & text) const override;
 	void getCastDescription(const spells::Spell * spell, const std::vector<const Unit *> & attacked, MetaString & text) const override;
 	int32_t manaLimit() const override;

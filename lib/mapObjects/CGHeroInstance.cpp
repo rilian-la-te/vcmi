@@ -321,7 +321,7 @@ void CGHeroInstance::initHero(CRandomGenerator & rand)
 	// load base hero bonuses, TODO: per-map loading of base hero bonuses
 	// must be done separately from global bonuses since recruitable heroes in taverns 
 	// are not attached to global bonus node but need access to some global bonuses
-	// e.g. MANA_PER_KNOWLEDGE for correct preview and initial state after recruit	for(const auto & ob : VLC->modh->heroBaseBonuses)
+	// e.g. MANA_PER_KNOWLEDGE for correct preview and initial state after recruit
 	// or MOVEMENT to compute initial movement before recruiting is finished
 	const JsonNode & baseBonuses = VLC->settings()->getValue(EGameSettings::BONUSES_PER_HERO);
 	for(const auto & b : baseBonuses.Struct())
@@ -578,9 +578,9 @@ TExpType CGHeroInstance::calculateXp(TExpType exp) const
 	return static_cast<TExpType>(exp * (valOfBonuses(BonusType::HERO_EXPERIENCE_GAIN_PERCENT)) / 100.0);
 }
 
-int32_t CGHeroInstance::getCasterUnitId() const
+ObjectInstanceID CGHeroInstance::getAdventureCasterID() const
 {
-	return id.getNum();
+	return id;
 }
 
 int32_t CGHeroInstance::getSpellSchoolLevel(const spells::Spell * spell, int32_t * outSelectedSchool) const
@@ -679,9 +679,9 @@ void CGHeroInstance::getCastDescription(const spells::Spell * spell, const std::
 		attacked.at(0)->addNameReplacement(text, true);
 }
 
-const CGHeroInstance * CGHeroInstance::getHeroCaster() const
+int32_t CGHeroInstance::getBattleCasterID() const
 {
-	return this;
+	return -1;
 }
 
 void CGHeroInstance::spendMana(ServerCallback * server, const int spellCost) const

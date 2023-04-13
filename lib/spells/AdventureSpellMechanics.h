@@ -15,6 +15,7 @@
 VCMI_LIB_NAMESPACE_BEGIN
 
 class CGTownInstance;
+class CGHeroInstance;
 
 enum class ESpellCastResult
 {
@@ -36,6 +37,7 @@ protected:
 	virtual ESpellCastResult beginCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
 	void performCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
 	void endCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const ESpellCastResult result) const;
+	const CGHeroInstance * getHeroCaster(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
 };
 
 class DLL_LINKAGE SummonBoatMechanics : public AdventureSpellMechanics
@@ -71,7 +73,7 @@ protected:
 	ESpellCastResult beginCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const override;
 private:
 	const CGTownInstance * findNearestTown(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters, const std::vector <const CGTownInstance*> & pool) const;
-	int32_t movementCost(const AdventureSpellCastParameters & parameters) const;
+	int32_t movementCost(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
 	std::vector <const CGTownInstance*> getPossibleTowns(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const;
 };
 

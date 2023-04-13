@@ -18,7 +18,8 @@ public:
 	MOCK_CONST_METHOD4(getAllBonuses, TConstBonusListPtr(const CSelector &, const CSelector &, const CBonusSystemNode *, const std::string &));
 	MOCK_CONST_METHOD0(getTreeVersion, int64_t());
 
-	MOCK_CONST_METHOD0(getCasterUnitId, int32_t());
+	MOCK_CONST_METHOD0(getBattleCasterID, int32_t());
+	MOCK_CONST_METHOD0(getAdventureCasterID, ObjectInstanceID());
 	MOCK_CONST_METHOD2(getSpellSchoolLevel, int32_t(const spells::Spell *, int32_t *));
 	MOCK_CONST_METHOD1(getEffectLevel, int32_t(const spells::Spell *));
 	MOCK_CONST_METHOD3(getSpellBonus, int64_t(const spells::Spell *, int64_t, const battle::Unit *));
@@ -31,7 +32,6 @@ public:
 	MOCK_CONST_METHOD3(getCastDescription, void(const spells::Spell *, const std::vector<const battle::Unit *> &, MetaString &));
 	MOCK_CONST_METHOD2(spendMana, void(ServerCallback *, const int32_t));
 	MOCK_CONST_METHOD0(manaLimit, int32_t());
-	MOCK_CONST_METHOD0(getHeroCaster, CGHeroInstance*());
 
 	//ACreature
 	MOCK_CONST_METHOD0(magicResistance, int32_t());
