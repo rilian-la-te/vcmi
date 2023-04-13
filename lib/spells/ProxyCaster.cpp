@@ -28,10 +28,10 @@ ProxyCaster::ProxyCaster(const Caster * actualCaster_)
 
 ProxyCaster::~ProxyCaster() = default;
 
-int32_t ProxyCaster::getCasterUnitId() const
+int32_t ProxyCaster::getBattleCasterID() const
 {
 	if(actualCaster)
-		return actualCaster->getCasterUnitId();
+		return actualCaster->getBattleCasterID();
 
 	return -1;
 }
@@ -118,12 +118,12 @@ void ProxyCaster::spendMana(ServerCallback * server, const int32_t spellCost) co
 		actualCaster->spendMana(server, spellCost);
 }
 
-const CGHeroInstance * ProxyCaster::getHeroCaster() const
+int32_t ProxyCaster::getAdventureCasterID() const
 {
 	if(actualCaster)
-		return actualCaster->getHeroCaster();
+		return actualCaster->getAdventureCasterID();
 	
-	return nullptr;
+	return -1;
 }
 
 int32_t ProxyCaster::manaLimit() const

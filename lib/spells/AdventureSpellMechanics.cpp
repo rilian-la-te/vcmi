@@ -83,7 +83,7 @@ ESpellCastResult AdventureSpellMechanics::applyAdventureEffects(SpellCastEnviron
 		for(const Bonus & b : bonuses)
 		{
 			GiveBonus gb;
-			gb.id = parameters.caster->getCasterUnitId();
+			gb.id = parameters.caster->getAdventureCasterID();
 			gb.bonus = b;
 			env->apply(&gb);
 		}
@@ -106,7 +106,7 @@ ESpellCastResult AdventureSpellMechanics::beginCast(SpellCastEnvironment * env, 
 void AdventureSpellMechanics::performCast(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
 {
 	AdvmapSpellCast asc;
-	asc.casterID = ObjectInstanceID(parameters.caster->getCasterUnitId());
+	asc.casterID = ObjectInstanceID(parameters.caster->getAdventureCasterID());
 	asc.spellID = owner->id;
 	env->apply(&asc);
 
@@ -129,6 +129,11 @@ void AdventureSpellMechanics::endCast(SpellCastEnvironment * env, const Adventur
 	}
 }
 
+const CGHeroInstance * AdventureSpellMechanics::getHeroCaster(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
+{
+	return env->getCb()->getHero(ObjectInstanceID(parameters.caster->getAdventureCasterID()));
+}
+
 ///SummonBoatMechanics
 SummonBoatMechanics::SummonBoatMechanics(const CSpell * s):
 	AdventureSpellMechanics(s)
@@ -137,13 +142,13 @@ SummonBoatMechanics::SummonBoatMechanics(const CSpell * s):
 
 ESpellCastResult SummonBoatMechanics::applyAdventureEffects(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
 {
-	if(!parameters.caster->getHeroCaster())
+	if(parameters.caster->getAdventureCasterID() < 0)
 	{
-		env->complain("Not a hero caster!");
+		env->complain("Not an adventure caster!");
 		return ESpellCastResult::ERROR;
 	}
-	
-	if(parameters.caster->getHeroCaster()->boat)
+
+	if(getHeroCaster(env, parameters)->boat)
 	{
 		InfoWindow iw;
 		iw.player = parameters.caster->getCasterOwner();
@@ -153,7 +158,7 @@ ESpellCastResult SummonBoatMechanics::applyAdventureEffects(SpellCastEnvironment
 		return ESpellCastResult::CANCEL;
 	}
 
-	int3 summonPos = parameters.caster->getHeroCaster()->bestLocation();
+	int3 summonPos = getHeroCaster(env, parameters)->bestLocation();
 	
 	if(summonPos.x < 0)
 	{
@@ -188,7 +193,7 @@ ESpellCastResult SummonBoatMechanics::applyAdventureEffects(SpellCastEnvironment
 			if(b->hero)
 				continue; //we're looking for unoccupied boat
 
-			double nDist = b->pos.dist2d(parameters.caster->getHeroCaster()->visitablePos());
+			double nDist = b->pos.dist2d(getHeroCaster(env, parameters)->visitablePos());
 			if(!nearest || nDist < dist) //it's first boat or closer than previous
 			{
 				nearest = b;
@@ -215,7 +220,7 @@ ESpellCastResult SummonBoatMechanics::applyAdventureEffects(SpellCastEnvironment
 	{
 		NewObject no;
 		no.ID = Obj::BOAT;
-		no.subID = parameters.caster->getHeroCaster()->getBoatType();
+		no.subID = getHeroCaster(env, parameters)->getBoatType();
 		no.pos = summonPos + int3(1,0,0);
 		env->apply(&no);
 	}
@@ -275,15 +280,15 @@ ESpellCastResult DimensionDoorMechanics::applyAdventureEffects(SpellCastEnvironm
 		env->complain("Destination is out of map!");
 		return ESpellCastResult::ERROR;
 	}
-	
-	if(!parameters.caster->getHeroCaster())
+
+	if(parameters.caster->getAdventureCasterID() < 0)
 	{
-		env->complain("Not a hero caster!");
+		env->complain("Not an adventure caster!");
 		return ESpellCastResult::ERROR;
 	}
 
 	const TerrainTile * dest = env->getCb()->getTile(parameters.pos);
-	const TerrainTile * curr = env->getCb()->getTile(parameters.caster->getHeroCaster()->getSightCenter());
+	const TerrainTile * curr = env->getCb()->getTile(getHeroCaster(env, parameters)->getSightCenter());
 
 	if(nullptr == dest)
 	{
@@ -297,7 +302,7 @@ ESpellCastResult DimensionDoorMechanics::applyAdventureEffects(SpellCastEnvironm
 		return ESpellCastResult::ERROR;
 	}
 
-	if(parameters.caster->getHeroCaster()->movement <= 0) //unlike town portal non-zero MP is enough
+	if(getHeroCaster(env, parameters)->movement <= 0) //unlike town portal non-zero MP is enough
 	{
 		env->complain("Hero needs movement points to cast Dimension Door!");
 		return ESpellCastResult::ERROR;
@@ -309,7 +314,7 @@ ESpellCastResult DimensionDoorMechanics::applyAdventureEffects(SpellCastEnvironm
 	std::stringstream cachingStr;
 	cachingStr << "source_" << Bonus::SPELL_EFFECT << "id_" << owner->id.num;
 
-	if(parameters.caster->getHeroCaster()->getBonuses(Selector::source(Bonus::SPELL_EFFECT, owner->id), Selector::all, cachingStr.str())->size() >= owner->getLevelPower(schoolLevel)) //limit casts per turn
+	if(getHeroCaster(env, parameters)->getBonuses(Selector::source(Bonus::SPELL_EFFECT, owner->id), Selector::all, cachingStr.str())->size() >= owner->getLevelPower(schoolLevel)) //limit casts per turn
 	{
 		InfoWindow iw;
 		iw.player = parameters.caster->getCasterOwner();
@@ -320,7 +325,7 @@ ESpellCastResult DimensionDoorMechanics::applyAdventureEffects(SpellCastEnvironm
 	}
 
 	GiveBonus gb;
-	gb.id = parameters.caster->getCasterUnitId();
+	gb.id = parameters.caster->getAdventureCasterID();
 	gb.bonus = Bonus(Bonus::ONE_DAY, Bonus::NONE, Bonus::SPELL_EFFECT, 0, owner->id);
 	env->apply(&gb);
 
@@ -331,14 +336,12 @@ ESpellCastResult DimensionDoorMechanics::applyAdventureEffects(SpellCastEnvironm
 		iw.text.addTxt(MetaString::GENERAL_TXT, 70); //Dimension Door failed!
 		env->apply(&iw);
 	}
-	else if(env->moveHero(ObjectInstanceID(parameters.caster->getCasterUnitId()), parameters.caster->getHeroCaster()->convertFromVisitablePos(parameters.pos), true))
+	else if(env->moveHero(ObjectInstanceID(parameters.caster->getAdventureCasterID()), getHeroCaster(env, parameters)->convertFromVisitablePos(parameters.pos), true))
 	{
 		SetMovePoints smp;
-		smp.hid = ObjectInstanceID(parameters.caster->getCasterUnitId());
-		if(movementCost < static_cast<int>(parameters.caster->getHeroCaster()->movement))
-			smp.val = parameters.caster->getHeroCaster()->movement - movementCost;
-		else
-			smp.val = 0;
+		smp.hid = ObjectInstanceID(parameters.caster->getAdventureCasterID());
+		smp.val = movementCost;
+		smp.absolute = false;
 		env->apply(&smp);
 	}
 	return ESpellCastResult::OK;
@@ -353,11 +356,11 @@ TownPortalMechanics::TownPortalMechanics(const CSpell * s):
 ESpellCastResult TownPortalMechanics::applyAdventureEffects(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
 {
 	const CGTownInstance * destination = nullptr;
-	const int moveCost = movementCost(parameters);
+	const int moveCost = movementCost(env, parameters);
 	
-	if(!parameters.caster->getHeroCaster())
+	if(parameters.caster->getAdventureCasterID() < 0)
 	{
-		env->complain("Not a hero caster!");
+		env->complain("Not an adventure caster!");
 		return ESpellCastResult::ERROR;
 	}
 
@@ -369,7 +372,7 @@ ESpellCastResult TownPortalMechanics::applyAdventureEffects(SpellCastEnvironment
 		if(nullptr == destination)
 			return ESpellCastResult::ERROR;
 
-		if(static_cast<int>(parameters.caster->getHeroCaster()->movement) < moveCost)
+		if(static_cast<int>(getHeroCaster(env, parameters)->movement) < moveCost)
 			return ESpellCastResult::ERROR;
 
 		if(destination->visitingHero)
@@ -419,7 +422,7 @@ ESpellCastResult TownPortalMechanics::applyAdventureEffects(SpellCastEnvironment
 			return ESpellCastResult::ERROR;
 		}
 
-		if(static_cast<int>(parameters.caster->getHeroCaster()->movement) < moveCost)
+		if(static_cast<int>(getHeroCaster(env, parameters)->movement) < moveCost)
 		{
 			env->complain("This hero has not enough movement points!");
 			return ESpellCastResult::ERROR;
@@ -437,11 +440,12 @@ ESpellCastResult TownPortalMechanics::applyAdventureEffects(SpellCastEnvironment
 		return ESpellCastResult::ERROR;
 	}
 
-	if(env->moveHero(ObjectInstanceID(parameters.caster->getCasterUnitId()), parameters.caster->getHeroCaster()->convertFromVisitablePos(destination->visitablePos()), true))
+	if(env->moveHero(ObjectInstanceID(parameters.caster->getAdventureCasterID()), getHeroCaster(env, parameters)->convertFromVisitablePos(destination->visitablePos()), true))
 	{
 		SetMovePoints smp;
-		smp.hid = ObjectInstanceID(parameters.caster->getCasterUnitId());
-		smp.val = std::max<ui32>(0, parameters.caster->getHeroCaster()->movement - moveCost);
+		smp.hid = ObjectInstanceID(parameters.caster->getAdventureCasterID());
+		smp.val = moveCost;
+		smp.absolute = false;
 		env->apply(&smp);
 	}
 	return ESpellCastResult::OK;
@@ -451,9 +455,9 @@ ESpellCastResult TownPortalMechanics::beginCast(SpellCastEnvironment * env, cons
 {
 	std::vector<const CGTownInstance *>	towns = getPossibleTowns(env, parameters);
 	
-	if(!parameters.caster->getHeroCaster())
+	if(parameters.caster->getAdventureCasterID() < 0)
 	{
-		env->complain("Not a hero caster!");
+		env->complain("Not an adventure caster!");
 		return ESpellCastResult::ERROR;
 	}
 
@@ -466,9 +470,9 @@ ESpellCastResult TownPortalMechanics::beginCast(SpellCastEnvironment * env, cons
 		return ESpellCastResult::CANCEL;
 	}
 
-	const int moveCost = movementCost(parameters);
+	const int moveCost = movementCost(env, parameters);
 
-	if(static_cast<int>(parameters.caster->getHeroCaster()->movement) < moveCost)
+	if(static_cast<int>(getHeroCaster(env, parameters)->movement) < moveCost)
 	{
 		InfoWindow iw;
 		iw.player = parameters.caster->getCasterOwner();
@@ -541,15 +545,15 @@ const CGTownInstance * TownPortalMechanics::findNearestTown(SpellCastEnvironment
 	if(pool.empty())
 		return nullptr;
 	
-	if(!parameters.caster->getHeroCaster())
+	if(!getHeroCaster(env, parameters))
 		return nullptr;
 
 	auto nearest = pool.cbegin(); //nearest town's iterator
-	si32 dist = (*nearest)->pos.dist2dSQ(parameters.caster->getHeroCaster()->pos);
+	si32 dist = (*nearest)->pos.dist2dSQ(getHeroCaster(env, parameters)->pos);
 
 	for(auto i = nearest + 1; i != pool.cend(); ++i)
 	{
-		si32 curDist = (*i)->pos.dist2dSQ(parameters.caster->getHeroCaster()->pos);
+		si32 curDist = (*i)->pos.dist2dSQ(getHeroCaster(env, parameters)->pos);
 
 		if(curDist < dist)
 		{
@@ -576,9 +580,9 @@ std::vector <const CGTownInstance*> TownPortalMechanics::getPossibleTowns(SpellC
 	return ret;
 }
 
-int32_t TownPortalMechanics::movementCost(const AdventureSpellCastParameters & parameters) const
+int32_t TownPortalMechanics::movementCost(SpellCastEnvironment * env, const AdventureSpellCastParameters & parameters) const
 {
-	if(parameters.caster != parameters.caster->getHeroCaster()) //if caster is not hero
+	if(parameters.caster != getHeroCaster(env, parameters)) //if caster is not hero
 		return 0;
 	
 	return GameConstants::BASE_MOVEMENT_COST * ((parameters.caster->getSpellSchoolLevel(owner) >= 3) ? 2 : 3);

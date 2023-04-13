@@ -32,7 +32,8 @@ class DLL_LINKAGE Caster
 public:
 	virtual ~Caster() = default;
 
-	virtual int32_t getCasterUnitId() const = 0;
+	//This caster ID should be used only in battle, this is a stack ID on battlefield (-1 if no stack)
+	virtual int32_t getBattleCasterID() const = 0;
 
 	/// returns level on which given spell would be cast by this(0 - none, 1 - basic etc);
 	/// caster may not know this spell at all
@@ -68,9 +69,9 @@ public:
 	virtual void spendMana(ServerCallback * server, const int32_t spellCost) const = 0;
 
 	virtual int32_t manaLimit() const = 0;
-	
-	///used to identify actual hero caster
-	virtual const CGHeroInstance * getHeroCaster() const = 0;
+
+	/// This caster ID should be used only in adventure spells (-1 if no adventure casting possible)
+	virtual int32_t getAdventureCasterID() const = 0;
 };
 
 }

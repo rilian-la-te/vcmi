@@ -255,7 +255,7 @@ public:
 	CBonusSystemNode * whereShouldBeAttachedOnSiege(CGameState * gs);
 
 	///spells::Caster
-	int32_t getCasterUnitId() const override;
+	int32_t getBattleCasterID() const override;
 	int32_t getSpellSchoolLevel(const spells::Spell * spell, int32_t * outSelectedSchool = nullptr) const override;
 	int64_t getSpellBonus(const spells::Spell * spell, int64_t base, const battle::Unit * affectedStack) const override;
 	int64_t getSpecificSpellBonus(const spells::Spell * spell, int64_t base) const override;
@@ -266,7 +266,7 @@ public:
 	int64_t getEffectValue(const spells::Spell * spell) const override;
 
 	PlayerColor getCasterOwner() const override;
-	const CGHeroInstance * getHeroCaster() const override;
+	int32_t getAdventureCasterID() const override;
 
 	void getCasterName(MetaString & text) const override;
 	void getCastDescription(const spells::Spell * spell, const std::vector<const battle::Unit *> & attacked, MetaString & text) const override;

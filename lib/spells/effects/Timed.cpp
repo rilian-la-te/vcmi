@@ -226,8 +226,8 @@ void Timed::convertBonus(const Mechanics * m, int32_t & duration, std::vector<Bo
 		if((nb.sid == SpellID::SHIELD || nb.sid == SpellID::AIR_SHIELD) && (nb.type == Bonus::GENERAL_DAMAGE_REDUCTION))
 			nb.val = 100 - nb.val;
 		//we need to know who cast Bind
-		else if(nb.sid == SpellID::BIND && nb.type == Bonus::BIND_EFFECT && m->caster->getHeroCaster() == nullptr)
-			nb.additionalInfo = m->caster->getCasterUnitId();
+		else if(nb.sid == SpellID::BIND && nb.type == Bonus::BIND_EFFECT && m->caster->getBattleCasterID() >= 0)
+			nb.additionalInfo = m->caster->getBattleCasterID();
 
 		converted.push_back(nb);
 	}

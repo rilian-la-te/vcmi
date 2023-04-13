@@ -112,7 +112,7 @@ Effects::EffectsToApply Effects::prepare(const Mechanics * m, const Target & aim
 		//todo: find a better way to handle such special cases
 
 		if(m->getSpellIndex() == SpellID::RESURRECTION && e->name == "cure")
-			applyThis = (m->caster->getHeroCaster() == nullptr);
+			applyThis = (m->caster->getBattleCasterID() >= 0);
 		else
 			applyThis = !e->indirect;
 

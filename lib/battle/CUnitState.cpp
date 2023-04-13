@@ -418,14 +418,14 @@ FactionID CUnitState::getFaction() const
 	return unitType()->getFaction();
 }
 
-int32_t CUnitState::getCasterUnitId() const
+int32_t CUnitState::getBattleCasterID() const
 {
 	return static_cast<int32_t>(unitId());
 }
 
-const CGHeroInstance * CUnitState::getHeroCaster() const
+int32_t CUnitState::getAdventureCasterID() const
 {
-	return nullptr;
+	return -1;
 }
 
 int32_t CUnitState::getSpellSchoolLevel(const spells::Spell * spell, int32_t * outSelectedSchool) const
