@@ -396,7 +396,6 @@ CGeneralTextHandler::CGeneralTextHandler():
 	heroscrn         (*this, "core.heroscrn" ),
 	tentColors       (*this, "core.tentcolr" ),
 	levels           (*this, "core.skilllev" ),
-	zelp             (*this, "core.help"     ),
 	allTexts         (*this, "core.genrltxt" ),
 	// pseudo-array, that don't have H3 file with same name
 	seerEmpty        (*this, "core.seerhut.empty"  ),
@@ -658,19 +657,6 @@ LegacyTextContainer::LegacyTextContainer(CGeneralTextHandler & owner, std::strin
 std::string LegacyTextContainer::operator[](size_t index) const
 {
 	return owner.translate(basePath, index);
-}
-
-LegacyHelpContainer::LegacyHelpContainer(CGeneralTextHandler & owner, std::string basePath):
-	owner(owner),
-	basePath(std::move(basePath))
-{}
-
-std::pair<std::string, std::string> LegacyHelpContainer::operator[](size_t index) const
-{
-	return {
-		owner.translate(basePath + "." + std::to_string(index) + ".hover"),
-		owner.translate(basePath + "." + std::to_string(index) + ".help")
-	};
 }
 
 VCMI_LIB_NAMESPACE_END

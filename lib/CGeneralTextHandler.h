@@ -72,17 +72,6 @@ public:
 	std::string operator [](size_t index) const;
 };
 
-/// Small wrapper that provides help text access API compatible with old code
-class DLL_LINKAGE LegacyHelpContainer
-{
-	CGeneralTextHandler & owner;
-	std::string basePath;
-
-public:
-	LegacyHelpContainer(CGeneralTextHandler & owner, std::string basePath);
-	std::pair<std::string, std::string> operator[](size_t index) const;
-};
-
 class TextIdentifier
 {
 	std::string identifier;
@@ -194,7 +183,6 @@ public:
 
 	LegacyTextContainer qeModCommands;
 
-	LegacyHelpContainer zelp;
 	LegacyTextContainer lossCondtions;
 	LegacyTextContainer victoryConditions;
 
