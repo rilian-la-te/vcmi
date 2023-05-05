@@ -550,6 +550,13 @@ public:
 		for(ui32 i = 0; i < length; i++)
 			load(data.data()[i]);
 	}
+	template <std::size_t T>
+	void load(std::bitset<T> &data)
+	{
+		uint32_t read;
+		load(read);
+		data = read;
+	}
 };
 
 class DLL_LINKAGE CLoadFile : public IBinaryReader

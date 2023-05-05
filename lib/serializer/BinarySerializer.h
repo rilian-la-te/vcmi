@@ -364,6 +364,12 @@ public:
 		for(ui32 i = 0; i < length; i++)
 			save(data.data()[i]);
 	}
+	template <std::size_t T>
+	void save(const std::bitset<T> &data)
+	{
+		auto writ = static_cast<uint32_t>(data.to_ulong());
+		save(writ);
+	}
 };
 
 class DLL_LINKAGE CSaveFile : public IBinaryWriter
