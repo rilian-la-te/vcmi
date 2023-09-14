@@ -1050,7 +1050,7 @@ CSelector JsonUtils::parseSelector(const JsonNode & ability)
 	{
 		CSelector base = Selector::none;
 		for(const auto & andN : value->Vector())
-			base.Or(parseSelector(andN));
+			base = base.Or(parseSelector(andN));
 		
 		ret = ret.And(base);
 	}
@@ -1060,7 +1060,7 @@ CSelector JsonUtils::parseSelector(const JsonNode & ability)
 	{
 		CSelector base = Selector::none;
 		for(const auto & andN : value->Vector())
-			base.Or(parseSelector(andN));
+			base = base.Or(parseSelector(andN));
 		
 		ret = ret.And(base.Not());
 	}
